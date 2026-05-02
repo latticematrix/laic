@@ -32,7 +32,7 @@ fn main() {
     }
 }
 
-fn run() -> Result<(), laicc::error::CompileError> {
+fn run() -> Result<(), laicc::CompileError> {
     let cli = Cli::parse();
 
     let source = std::fs::read_to_string(&cli.input)?;
@@ -43,7 +43,7 @@ fn run() -> Result<(), laicc::error::CompileError> {
         "python" => (laicc::generate_python(&file)?, "py"),
         "typescript" => (laicc::generate_typescript(&file)?, "ts"),
         other => {
-            return Err(laicc::error::CompileError::Codegen(format!(
+            return Err(laicc::CompileError::Codegen(format!(
                 "unsupported target language: '{other}' (available: rust, python, typescript)"
             )));
         }

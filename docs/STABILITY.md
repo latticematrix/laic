@@ -73,7 +73,19 @@ The stable `laicc` library contract is the top-level compile/codegen workflow:
 - `generate_python()`
 - `generate_typescript()`
 
-Support types named directly by those signatures are included only to the extent required to use that top-level workflow.
+Support types named directly by those signatures are re-exported at the crate root and included only to the extent required to use that top-level workflow:
+
+- `CompileError`
+- `LaicFile`
+- `SkillDef`
+- `StructDef`
+- `FieldDef`
+- `LaicType`
+- `TensorElementType`
+- `Dimension`
+- `ErrorVariant`
+- `Literal`
+
 Submodule layout under `ast`, `parser`, `validate`, and `codegen` is not independently frozen as public architecture.
 
 ### `laicc` CLI
@@ -125,7 +137,7 @@ The current MVP stable protocol-compatibility surface includes:
 The following are intentionally outside the current MVP stable promise:
 
 - `laicc-verify`
-- direct use of `laicc::parser`, `laicc::validate`, `laicc::codegen::*`, or internal AST/layout details beyond the documented top-level workflow
+- direct use of `laicc::parser`, `laicc::validate`, `laicc::codegen::*`, `laicc::ast`, `laicc::error`, or internal AST/layout details beyond the documented top-level workflow
 - `laic` internal module layout, transport implementation details, protobuf/Arrow helper internals, and repo-local support code
 - `crates/*/tests/**`, `tests/support/**`, runtime fixtures, CI orchestration, local scripts, and benchmark harnesses
 - local development, planning, review, and continuity materials

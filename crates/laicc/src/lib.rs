@@ -9,7 +9,7 @@
 #![deny(missing_docs)]
 #![warn(clippy::pedantic)]
 
-pub mod ast;
+mod ast;
 #[allow(
     clippy::format_push_string,
     clippy::uninlined_format_args,
@@ -22,48 +22,52 @@ pub mod ast;
     clippy::useless_format,
     clippy::missing_errors_doc
 )]
-pub mod codegen;
-pub mod error;
+mod codegen;
+mod error;
 #[allow(missing_docs)]
-pub mod parser;
-pub mod validate;
+mod parser;
+mod validate;
 
-use error::CompileError;
+pub use ast::{
+    Dimension, ErrorVariant, FieldDef, LaicFile, LaicType, Literal, SkillDef, StructDef,
+    TensorElementType,
+};
+pub use error::CompileError;
 
 /// Parse and validate a `.laic` source string.
 ///
 /// # Errors
 ///
 /// Returns `CompileError::Parse` on syntax errors, `CompileError::Validation` on semantic errors.
-pub fn compile(source: &str) -> Result<ast::LaicFile, CompileError> {
+pub fn compile(source: &str) -> Result<LaicFile, CompileError> {
     let file = parser::parse(source)?;
     validate::validate(&file)?;
     Ok(file)
 }
 
-/// Generate Rust source code from a validated [`ast::LaicFile`].
+/// Generate Rust source code from a validated [`LaicFile`].
 ///
 /// # Errors
 ///
 /// Returns `CompileError::Codegen` if code generation fails.
-pub fn generate_rust(file: &ast::LaicFile) -> Result<String, CompileError> {
-    codegen::rust_contract::generate_rust(file)
+pub fn generate_rust(file: &LaicFile) -> Result<String, CompileError> {
+    Ok(codegen::rust_contract::generate_rust(file))
 }
 
-/// Generate Python source code from a validated [`ast::LaicFile`].
+/// Generate Python source code from a validated [`LaicFile`].
 ///
 /// # Errors
 ///
 /// Returns `CompileError::Codegen` if code generation fails.
-pub fn generate_python(file: &ast::LaicFile) -> Result<String, CompileError> {
-    codegen::python_contract::generate_python(file)
+pub fn generate_python(file: &LaicFile) -> Result<String, CompileError> {
+    Ok(codegen::python_contract::generate_python(file))
 }
 
-/// Generate TypeScript source code from a validated [`ast::LaicFile`].
+/// Generate TypeScript source code from a validated [`LaicFile`].
 ///
 /// # Errors
 ///
 /// Returns `CompileError::Codegen` if code generation fails.
-pub fn generate_typescript(file: &ast::LaicFile) -> Result<String, CompileError> {
-    codegen::typescript_contract::generate_typescript(file)
+pub fn generate_typescript(file: &LaicFile) -> Result<String, CompileError> {
+    Ok(codegen::typescript_contract::generate_typescript(file))
 }

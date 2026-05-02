@@ -2,13 +2,10 @@
 
 #![allow(clippy::unwrap_used)]
 
-use laicc::error::CompileError;
-use laicc::parser::parse;
-use laicc::validate::validate;
+use laicc::CompileError;
 
 fn parse_and_validate(src: &str) -> Result<(), CompileError> {
-    let file = parse(src)?;
-    validate(&file)
+    laicc::compile(src).map(|_| ())
 }
 
 #[test]

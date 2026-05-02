@@ -6,14 +6,9 @@ use crate::codegen::python_serialize::generate_to_ipc;
 use crate::codegen::python_string_literal;
 use crate::codegen::python_types::python_type;
 use crate::codegen::to_pascal_case;
-use crate::error::CompileError;
 
 /// Generate complete Python source code for a parsed and validated `.laic` file.
-///
-/// # Errors
-///
-/// Returns `CompileError::Codegen` if code generation fails.
-pub fn generate_python(file: &LaicFile) -> Result<String, CompileError> {
+pub fn generate_python(file: &LaicFile) -> String {
     let mut out = String::with_capacity(4096);
 
     // Header
@@ -36,7 +31,7 @@ pub fn generate_python(file: &LaicFile) -> Result<String, CompileError> {
         }
     }
 
-    Ok(out)
+    out
 }
 
 fn generate_dataclass(

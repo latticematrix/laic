@@ -3,7 +3,7 @@
 use std::fs;
 
 /// Helper: compile a fixture file end-to-end.
-fn compile_fixture(name: &str) -> laicc::ast::LaicFile {
+fn compile_fixture(name: &str) -> laicc::LaicFile {
     let path = format!("tests/fixtures/{name}.laic");
     let src = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
     laicc::compile(&src).unwrap_or_else(|e| panic!("compile {path}: {e}"))
@@ -44,19 +44,19 @@ fn fixture_embedding() {
     assert_eq!(model_field.name, "model");
     assert_eq!(
         model_field.default,
-        Some(laicc::ast::Literal::String("default".into()))
+        Some(laicc::Literal::String("default".into()))
     );
 
     let max_tokens = &file.skills[0].input.fields[2];
-    assert_eq!(max_tokens.default, Some(laicc::ast::Literal::Integer(512)));
+    assert_eq!(max_tokens.default, Some(laicc::Literal::Integer(512)));
 
     // Check tensor output
     let emb_field = &file.skills[0].output.fields[0];
     match &emb_field.ty {
-        laicc::ast::LaicType::Tensor { dtype, dims } => {
-            assert_eq!(*dtype, laicc::ast::TensorElementType::F32);
+        laicc::LaicType::Tensor { dtype, dims } => {
+            assert_eq!(*dtype, laicc::TensorElementType::F32);
             assert_eq!(dims.len(), 1);
-            assert_eq!(dims[0], laicc::ast::Dimension::Fixed(768));
+            assert_eq!(dims[0], laicc::Dimension::Fixed(768));
         }
         other => panic!("expected Tensor, got {other:?}"),
     }
@@ -79,24 +79,24 @@ fn fixture_image_classify() {
     assert_eq!(skill.id, "image-classify");
 
     // bytes field
-    assert_eq!(skill.input.fields[0].ty, laicc::ast::LaicType::Bytes);
+    assert_eq!(skill.input.fields[0].ty, laicc::LaicType::Bytes);
 
     // defaults
     assert_eq!(
         skill.input.fields[1].default,
-        Some(laicc::ast::Literal::Integer(5))
+        Some(laicc::Literal::Integer(5))
     );
     assert_eq!(
         skill.input.fields[2].default,
-        Some(laicc::ast::Literal::Float(0.5))
+        Some(laicc::Literal::Float(0.5))
     );
 
     // tensor with dynamic dim
     match &skill.output.fields[0].ty {
-        laicc::ast::LaicType::Tensor { dims, .. } => {
+        laicc::LaicType::Tensor { dims, .. } => {
             assert_eq!(dims.len(), 2);
-            assert_eq!(dims[0], laicc::ast::Dimension::Dynamic(None));
-            assert_eq!(dims[1], laicc::ast::Dimension::Fixed(512));
+            assert_eq!(dims[0], laicc::Dimension::Dynamic(None));
+            assert_eq!(dims[1], laicc::Dimension::Fixed(512));
         }
         other => panic!("expected Tensor, got {other:?}"),
     }
@@ -117,15 +117,15 @@ fn fixture_list_types() {
     let skill = &file.skills[0];
 
     match &skill.input.fields[0].ty {
-        laicc::ast::LaicType::List(inner) => {
-            assert_eq!(**inner, laicc::ast::LaicType::String);
+        laicc::LaicType::List(inner) => {
+            assert_eq!(**inner, laicc::LaicType::String);
         }
         other => panic!("expected List, got {other:?}"),
     }
 
     match &skill.input.fields[1].ty {
-        laicc::ast::LaicType::List(inner) => {
-            assert_eq!(**inner, laicc::ast::LaicType::F32);
+        laicc::LaicType::List(inner) => {
+            assert_eq!(**inner, laicc::LaicType::F32);
         }
         other => panic!("expected List, got {other:?}"),
     }
@@ -137,15 +137,15 @@ fn fixture_optional_types() {
     let skill = &file.skills[0];
 
     match &skill.input.fields[1].ty {
-        laicc::ast::LaicType::Optional(inner) => {
-            assert_eq!(**inner, laicc::ast::LaicType::I32);
+        laicc::LaicType::Optional(inner) => {
+            assert_eq!(**inner, laicc::LaicType::I32);
         }
         other => panic!("expected Optional, got {other:?}"),
     }
 
     match &skill.output.fields[2].ty {
-        laicc::ast::LaicType::Optional(inner) => {
-            assert_eq!(**inner, laicc::ast::LaicType::String);
+        laicc::LaicType::Optional(inner) => {
+            assert_eq!(**inner, laicc::LaicType::String);
         }
         other => panic!("expected Optional, got {other:?}"),
     }
@@ -157,9 +157,9 @@ fn fixture_map_types() {
     let skill = &file.skills[0];
 
     match &skill.input.fields[0].ty {
-        laicc::ast::LaicType::Map(k, v) => {
-            assert_eq!(**k, laicc::ast::LaicType::String);
-            assert_eq!(**v, laicc::ast::LaicType::String);
+        laicc::LaicType::Map(k, v) => {
+            assert_eq!(**k, laicc::LaicType::String);
+            assert_eq!(**v, laicc::LaicType::String);
         }
         other => panic!("expected Map, got {other:?}"),
     }
@@ -172,11 +172,11 @@ fn fixture_tensor_container() {
 
     // list<tensor<f32>[768]>
     match &skill.input.fields[0].ty {
-        laicc::ast::LaicType::List(inner) => match inner.as_ref() {
-            laicc::ast::LaicType::Tensor { dtype, dims } => {
-                assert_eq!(*dtype, laicc::ast::TensorElementType::F32);
+        laicc::LaicType::List(inner) => match inner.as_ref() {
+            laicc::LaicType::Tensor { dtype, dims } => {
+                assert_eq!(*dtype, laicc::TensorElementType::F32);
                 assert_eq!(dims.len(), 1);
-                assert_eq!(dims[0], laicc::ast::Dimension::Fixed(768));
+                assert_eq!(dims[0], laicc::Dimension::Fixed(768));
             }
             other => panic!("expected Tensor inside List, got {other:?}"),
         },
@@ -185,11 +185,11 @@ fn fixture_tensor_container() {
 
     // optional<tensor<f64>[512]>
     match &skill.output.fields[0].ty {
-        laicc::ast::LaicType::Optional(inner) => match inner.as_ref() {
-            laicc::ast::LaicType::Tensor { dtype, dims } => {
-                assert_eq!(*dtype, laicc::ast::TensorElementType::F64);
+        laicc::LaicType::Optional(inner) => match inner.as_ref() {
+            laicc::LaicType::Tensor { dtype, dims } => {
+                assert_eq!(*dtype, laicc::TensorElementType::F64);
                 assert_eq!(dims.len(), 1);
-                assert_eq!(dims[0], laicc::ast::Dimension::Fixed(512));
+                assert_eq!(dims[0], laicc::Dimension::Fixed(512));
             }
             other => panic!("expected Tensor inside Optional, got {other:?}"),
         },

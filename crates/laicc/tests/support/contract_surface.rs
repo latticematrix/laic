@@ -12,7 +12,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use laicc::ast::LaicFile;
+use laicc::LaicFile;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

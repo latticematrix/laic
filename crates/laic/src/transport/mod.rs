@@ -8,7 +8,8 @@
 //!   (IPC: create iceoryx2 services; QUIC: establish a connection with mTLS).
 //! - **Send/Receive**: exchange [`super::protocol::message::Message`] frames.
 //! - **Close**: graceful shutdown — mark the connection as closed so
-//!   subsequent operations return [`TransportError::ShuttingDown`], then
+//!   subsequent operations return
+//!   [`TransportError::ShuttingDown`](crate::error::TransportError::ShuttingDown), then
 //!   release resources. (QUIC finishes the stream; IPC sets a flag and
 //!   defers SHM cleanup to drop.)
 //! - **Drop**: if `close` was not called explicitly, resources are released
@@ -28,8 +29,8 @@
 //! There is **no extra length prefix** — the header's `payload_len` field
 //! is the single source of truth for payload size (Decision D8).
 //!
-//! The [`framing`] module provides async read/write primitives for this
-//! wire format.
+//! The crate re-exports async read/write primitives for this wire format as
+//! [`read_frame`] and [`write_frame`].
 
 use crate::error::LaicError;
 use crate::protocol::message::Message;

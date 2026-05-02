@@ -4,9 +4,9 @@ This repository is the public-safe export target for LAIC.
 
 ## Source
 
-- Private development repository: `latticematrix/latrix-laic`
-- Source commit for this export: `98197770dd55d182e58e954c8da2853943ed15ff`
 - Public target repository: `latticematrix/laic`
+- Source provenance is retained in private release records, not in this
+  public-facing export document.
 
 ## Export Shape
 

@@ -322,9 +322,10 @@ impl IpcConnection {
 
     /// Receive the next LAIC message from shared memory.
     ///
-    /// Polls the iceoryx2 subscriber and falls back to [`POLL_INTERVAL`]
-    /// sleeps until a message arrives. A caller may explicitly opt into a
-    /// bounded active-yield window with [`ACTIVE_POLL_BUDGET_MS_ENV`].
+    /// Polls the iceoryx2 subscriber and falls back to the default 100us
+    /// sleep interval until a message arrives. A caller may explicitly opt
+    /// into a bounded active-yield window with the
+    /// `LAIC_IPC_ACTIVE_POLL_BUDGET_MS` environment variable.
     ///
     /// # Errors
     ///

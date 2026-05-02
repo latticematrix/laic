@@ -6,14 +6,9 @@ use crate::codegen::rust_serialize::generate_to_arrow_ipc;
 use crate::codegen::rust_string_literal;
 use crate::codegen::rust_types::rust_type;
 use crate::codegen::to_pascal_case;
-use crate::error::CompileError;
 
 /// Generate complete Rust source code for a parsed and validated `.laic` file.
-///
-/// # Errors
-///
-/// Returns `CompileError::Codegen` if code generation fails.
-pub fn generate_rust(file: &LaicFile) -> Result<String, CompileError> {
+pub fn generate_rust(file: &LaicFile) -> String {
     let mut out = String::with_capacity(4096);
 
     // Header
@@ -39,7 +34,7 @@ pub fn generate_rust(file: &LaicFile) -> Result<String, CompileError> {
         }
     }
 
-    Ok(out)
+    out
 }
 
 fn generate_struct(

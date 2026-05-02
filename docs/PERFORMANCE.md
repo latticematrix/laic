@@ -12,7 +12,7 @@ The numbers below belong to `0.1.0 MVP`. They are measured evidence from local v
 
 ## Performance Advantages
 
-For `0.1.0 MVP`, LAIC's measured advantage is that the mechanism layer can move AI-system messages with low overhead across three practical transport distances:
+For `0.1.0 MVP`, LAIC's measured advantage is that the mechanism layer can move AI-system messages with low overhead across four validated transport shapes:
 
 - Local IPC stays in tens of microseconds on the current Windows local validation path after the receive-loop optimization.
 - Localhost QUIC stays below 1 ms p95 in the current Windows local validation path.

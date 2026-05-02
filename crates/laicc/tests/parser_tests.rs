@@ -2,8 +2,7 @@
 
 #![allow(clippy::unwrap_used)]
 
-use laicc::ast::*;
-use laicc::parser::parse;
+use laicc::{compile, Dimension, LaicType, Literal, TensorElementType};
 
 #[test]
 fn test_parse_minimal() {
@@ -15,7 +14,7 @@ fn test_parse_minimal() {
             output EchoOutput { text: string; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     assert_eq!(file.version, "1.0.0");
     assert_eq!(file.skills.len(), 1);
     assert_eq!(file.skills[0].name, "echo");
@@ -47,7 +46,7 @@ fn test_parse_all_scalar_types() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     let fields = &file.skills[0].input.fields;
     assert_eq!(fields.len(), 10);
     assert_eq!(fields[0].ty, LaicType::String);
@@ -72,7 +71,7 @@ fn test_parse_tensor() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     match &file.skills[0].input.fields[0].ty {
         LaicType::Tensor { dtype, dims } => {
             assert_eq!(*dtype, TensorElementType::F32);
@@ -93,7 +92,7 @@ fn test_parse_tensor_dynamic_dims() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     match &file.skills[0].input.fields[0].ty {
         LaicType::Tensor { dims, .. } => {
             assert_eq!(dims.len(), 2);
@@ -114,7 +113,7 @@ fn test_parse_tensor_multidim() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     match &file.skills[0].input.fields[0].ty {
         LaicType::Tensor { dims, .. } => {
             assert_eq!(dims.len(), 3);
@@ -141,7 +140,7 @@ fn test_parse_defaults() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     let fields = &file.skills[0].input.fields;
     assert_eq!(fields[0].default, Some(Literal::String("default".into())));
     assert_eq!(fields[1].default, Some(Literal::Integer(512)));
@@ -163,7 +162,7 @@ fn test_parse_errors() {
             }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     assert_eq!(file.skills[0].errors.len(), 2);
     assert_eq!(file.skills[0].errors[0].name, "INPUT_TOO_LONG");
     assert_eq!(file.skills[0].errors[0].code, 1);
@@ -186,7 +185,7 @@ fn test_parse_multiple_skills() {
             output BO { y: string; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     assert_eq!(file.skills.len(), 2);
     assert_eq!(file.skills[0].name, "a");
     assert_eq!(file.skills[1].name, "b");
@@ -207,7 +206,7 @@ fn test_parse_comments() {
             output EchoOutput { text: string; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     assert_eq!(file.skills.len(), 1);
 }
 
@@ -225,7 +224,7 @@ fn test_parse_list_optional_map() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     let fields = &file.skills[0].input.fields;
 
     match &fields[0].ty {
@@ -247,12 +246,12 @@ fn test_parse_list_optional_map() {
 
 #[test]
 fn test_parse_error_invalid_syntax() {
-    let result = parse("not valid laic");
+    let result = compile("not valid laic");
     assert!(result.is_err());
 }
 
 #[test]
-fn test_parse_nested_list() {
+fn test_compile_rejects_nested_list() {
     let src = r#"
         version "1.0.0";
         skill test {
@@ -261,13 +260,8 @@ fn test_parse_nested_list() {
             output TestOutput { y: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
-    match &file.skills[0].input.fields[0].ty {
-        LaicType::List(inner) => {
-            assert!(matches!(inner.as_ref(), LaicType::List(i) if **i == LaicType::I32));
-        }
-        other => panic!("expected List, got {other:?}"),
-    }
+    let err = compile(src).unwrap_err().to_string();
+    assert!(err.contains("nested list<list<T>>"), "{err}");
 }
 
 #[test]
@@ -285,7 +279,7 @@ fn test_parse_map_various_value_types() {
             output TestOutput { x: i32; }
         }
     "#;
-    let file = parse(src).unwrap_or_else(|e| panic!("parse failed: {e}"));
+    let file = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
     let fields = &file.skills[0].input.fields;
     assert_eq!(fields.len(), 4);
     assert!(

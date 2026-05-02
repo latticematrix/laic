@@ -108,8 +108,7 @@ impl QuicServer {
 /// A bidirectional QUIC connection for exchanging LAIC messages.
 ///
 /// Wraps a single QUIC bidirectional stream. Messages are framed as
-/// `[40-byte header][payload]` using the [`framing`](super::framing)
-/// module.
+/// `[40-byte header][payload]` using the transport framing helpers.
 pub struct QuicConnection {
     send: quinn::SendStream,
     recv: quinn::RecvStream,
