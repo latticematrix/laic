@@ -1,0 +1,23 @@
+// Test fixture for list<T> types.
+
+version "1.0.0";
+
+skill batch_embed {
+    id = "batch-embed";
+
+    input BatchEmbedInput {
+        texts: list<string>;
+        weights: list<f32>;
+        model: string = "default";
+    }
+
+    output BatchEmbedOutput {
+        token_counts: list<i32>;
+        success: bool;
+    }
+
+    error {
+        INPUT_TOO_LONG = 1;
+        BATCH_TOO_LARGE = 2;
+    }
+}

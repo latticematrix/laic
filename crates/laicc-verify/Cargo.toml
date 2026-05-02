@@ -1,0 +1,17 @@
+[package]
+name = "laicc-verify"
+description = "Internal verification harness for laicc-generated contract bindings"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[build-dependencies]
+laicc = { path = "../laicc" }
+
+[dev-dependencies]
+arrow-array = { version = "54", default-features = false }
+arrow-ipc = { version = "54", default-features = false }
+arrow-schema = { version = "54", default-features = false }

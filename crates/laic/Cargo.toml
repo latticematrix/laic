@@ -1,0 +1,33 @@
+[package]
+name = "laic"
+description = "Mechanism-layer transport and contract protocol for AI systems"
+readme = "README.md"
+autobenches = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+arrow-array = { version = "54", default-features = false }
+arrow-ipc = { version = "54", default-features = false }
+arrow-schema = { version = "54", default-features = false }
+iceoryx2 = "0.8"
+prost = "0.13"
+quinn = "0.11"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+tokio = { version = "1", features = ["io-util", "net", "rt", "time"] }
+
+[dev-dependencies]
+criterion = "0.5"
+rcgen = "0.13"
+tokio = { version = "1", features = ["rt", "macros", "net", "time"] }
+
+[[bench]]
+name = "codec_bench"
+harness = false
+
+[[bench]]
+name = "b_host_local_validation"
+harness = false

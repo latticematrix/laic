@@ -1,0 +1,11 @@
+{
+  "name": "laicc-typescript-runtime",
+  "main": "./dist/index.js",
+  "private": true,
+  "dependencies": {
+    "apache-arrow": "21.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}

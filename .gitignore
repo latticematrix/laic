@@ -1,0 +1,46 @@
+# Build artifacts
+/target/
+**/*.rs.bk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude shared hook baseline
+# WHY: settings.json and repo-aware hook scripts are versioned onboarding assets.
+# Only continuity files stay local.
+.claude/continue/
+
+# Codex local continuity data (not committed)
+.codex/
+
+# Local agent instructions copy (not committed)
+AGENTS.md
+
+# Git hooks shared baseline
+# WHY: pre-commit is a versioned onboarding artifact; keep other local hook experiments ignored.
+.githooks/*
+!.githooks/pre-commit
+
+# Spike build artifacts (not part of workspace CI)
+spikes/*/target/
+
+# Logs and temp files
+*.log
+*.tmp
+.tmp/
+
+# Local TypeScript verify fixture dependencies
+crates/laicc/tests/typescript_runtime/node_modules/
+crates/laicc/tests/typescript_runtime/.verify/
+crates/laicc/tests/typescript_runtime/dist/
+
+# Local Python verify virtualenvs
+crates/laicc/tests/python_runtime/.venv/

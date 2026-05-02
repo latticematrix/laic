@@ -1,0 +1,16 @@
+// Test fixture for list<tensor> and optional<tensor> types
+version "1.0.0";
+
+skill tensor_container {
+    id = "tensor-container";
+
+    input TensorContainerInput {
+        embeddings: list<tensor<f32>[768]>;
+        primary: tensor<f32>[3, 224, 224];
+    }
+
+    output TensorContainerOutput {
+        features: optional<tensor<f64>[512]>;
+        scores: list<tensor<f32>[10]>;
+    }
+}

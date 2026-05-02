@@ -1,0 +1,28 @@
+// Multi-skill file test
+version "2.0.0";
+
+skill tokenize {
+    id = "tokenize";
+
+    input TokenizeInput {
+        text: string;
+        max_length: i32 = 512;
+    }
+
+    output TokenizeOutput {
+        token_ids: tensor<i32>[_];
+        attention_mask: tensor<i32>[_];
+    }
+}
+
+skill detokenize {
+    id = "detokenize";
+
+    input DetokenizeInput {
+        token_ids: tensor<i32>[_];
+    }
+
+    output DetokenizeOutput {
+        text: string;
+    }
+}

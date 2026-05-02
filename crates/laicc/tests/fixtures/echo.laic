@@ -1,0 +1,14 @@
+// Simple Echo Skill Contract
+version "1.0.0";
+
+skill echo {
+    id = "echo";
+
+    input EchoInput {
+        text: string;
+    }
+
+    output EchoOutput {
+        text: string;
+    }
+}

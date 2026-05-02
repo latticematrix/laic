@@ -1,0 +1,67 @@
+// LAIC IDL PEG Grammar
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT    = _{ "//" ~ (!"\n" ~ ANY)* }
+
+file = { SOI ~ version_decl ~ skill_def+ ~ EOI }
+
+version_decl = { "version" ~ string_literal ~ ";" }
+
+skill_def = {
+    "skill" ~ ident ~ "{" ~
+        id_decl ~
+        input_def ~
+        output_def ~
+        error_def? ~
+    "}"
+}
+
+id_decl = { "id" ~ "=" ~ string_literal ~ ";" }
+
+input_def  = { "input" ~ ident ~ "{" ~ field_def* ~ "}" }
+output_def = { "output" ~ ident ~ "{" ~ field_def* ~ "}" }
+
+field_def = { ident ~ ":" ~ laic_type ~ default_value? ~ ";" }
+
+default_value = { "=" ~ literal }
+
+laic_type = {
+    map_type | list_type | optional_type | tensor_type
+  | "string"
+  | "bytes"
+  | "bool"
+  | "i8"
+  | "i16"
+  | "i32"
+  | "i64"
+  | "u8"
+  | "f32"
+  | "f64"
+}
+
+map_type      = { "map" ~ "<" ~ laic_type ~ "," ~ laic_type ~ ">" }
+list_type     = { "list" ~ "<" ~ laic_type ~ ">" }
+optional_type = { "optional" ~ "<" ~ laic_type ~ ">" }
+
+tensor_type = { "tensor" ~ "<" ~ tensor_dtype ~ ">" ~ "[" ~ dim_list ~ "]" }
+
+tensor_dtype = { "f32" | "f64" | "i8" | "i16" | "i32" | "i64" | "u8" | "bool" }
+
+dim_list = { dimension ~ ("," ~ dimension)* }
+
+dimension = { integer | "_" | ident }
+
+error_def = { "error" ~ "{" ~ error_variant+ ~ "}" }
+
+error_variant = { ident ~ "=" ~ integer ~ ";" }
+
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+literal = { string_literal | float_literal | integer_literal | bool_literal }
+
+string_literal  = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+float_literal   = @{ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+integer_literal = @{ "-"? ~ ASCII_DIGIT+ }
+bool_literal    = @{ "true" | "false" }
+
+integer = @{ ASCII_DIGIT+ }

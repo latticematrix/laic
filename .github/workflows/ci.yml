@@ -1,0 +1,260 @@
+# Latrix CI — Standard Workflow (adapted from latrix-audit/ci-templates/ci.yml)
+#
+# WHY: 6 jobs (4 standard + 1 contract-surface gate + 1 LAIC-specific boundary check).
+# Bash checks merged into project-standards to avoid redundant checkouts.
+# See ci-templates/DEPLOY.md for template docs.
+
+name: CI
+
+on:
+  push:
+    # WHY: `dev/phase-8` is an active delivery branch that still needs full repo CI
+    # before merge/closeout. Keep the trigger narrow instead of widening to every
+    # `dev/*` branch until the team intentionally changes CI policy.
+    branches: [main, dev, dev/phase-8]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      # WHY: -- separates cargo flags from rustc/clippy flags
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+
+  release-smoke:
+    name: Release Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      # WHY: keep release-operations evidence explicit instead of hiding it inside generic Test.
+      - name: Package official artifacts
+        run: |
+          cargo package -p laic --allow-dirty
+          cargo package -p laicc --allow-dirty
+      - name: Verify laicc CLI entry point
+        run: cargo run -p laicc -- --help
+      - name: Run release smoke script
+        run: bash ./scripts/release-smoke.sh
+
+  python-verify:
+    name: Python Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Python verify fixture dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r crates/laicc/tests/python_runtime/requirements.txt
+      - name: Run laicc python verify
+        run: cargo test -p laicc --features python-verify --test python_verify -- --test-threads=1
+
+  typescript-verify:
+    name: TypeScript Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          # WHY: keep current no-cache behavior explicit. The fixture package does
+          # not declare `packageManager` today, but future metadata changes should
+          # not silently enable setup-node's automatic npm cache path.
+          package-manager-cache: false
+      - uses: Swatinem/rust-cache@v2
+      - name: Install TypeScript fixture dependencies
+        run: npm ci --prefix crates/laicc/tests/typescript_runtime
+      - name: Run laicc TypeScript verify
+        run: cargo test -p laicc --features typescript-verify --test typescript_verify -- --test-threads=1
+
+  contract-surface-compatibility:
+    name: Contract Surface Compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          # WHY: keep current no-cache behavior explicit. The fixture package does
+          # not declare `packageManager` today, but future metadata changes should
+          # not silently enable setup-node's automatic npm cache path.
+          package-manager-cache: false
+      - uses: Swatinem/rust-cache@v2
+      # WHY: this gate proves Python <-> TypeScript IPC compatibility against the Rust
+      # canonical contract view. Keep it first-class instead of hiding it inside generic Test.
+      - name: Install Python verify fixture dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r crates/laicc/tests/python_runtime/requirements.txt
+      - name: Install TypeScript fixture dependencies
+        run: npm ci --prefix crates/laicc/tests/typescript_runtime
+      - name: Run contract surface compatibility gate
+        run: cargo test -p laicc --features contract-surface-verify --test contract_surface_compat -- --test-threads=1
+
+  project-standards:
+    name: Project Standards
+    runs-on: ubuntu-latest
+    steps:
+      # WHY: fetch-depth 0 — shallow clone breaks git log for commit checks
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check file sizes (max 500 lines)
+        run: |
+          # Per-repo allowlist: space-separated paths relative to repo root.
+          ALLOWLIST=""
+
+          fail=0
+          while IFS= read -r f; do
+            # Skip allowlisted files
+            skip=false
+            for allowed in $ALLOWLIST; do
+              if [ "$f" = "$allowed" ]; then
+                skip=true
+                break
+              fi
+            done
+            if [ "$skip" = "true" ]; then
+              continue
+            fi
+
+            lines=$(wc -l < "$f")
+            if [ "$lines" -gt 500 ]; then
+              echo "::error file=$f::$f has $lines lines (max 500)"
+              fail=1
+            fi
+          done < <(find crates -name '*.rs' -type f 2>/dev/null)
+
+          exit $fail
+
+      - name: Check Cargo.lock exists
+        run: |
+          if [ ! -f Cargo.lock ]; then
+            echo "::error::Cargo.lock not found. It must be committed to version control."
+            exit 1
+          fi
+
+      - name: Check conventional commits
+        if: github.event_name == 'pull_request'
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+
+          # WHY: regex covers all 11 standard types
+          pattern='^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([a-zA-Z0-9_-]+\))?(!)?: .+$'
+
+          fail=0
+          while IFS= read -r subject; do
+            # Skip merge commits, fixup!, and squash! (rebase temporaries)
+            case "$subject" in
+              Merge\ *|fixup!\ *|squash!\ *) continue ;;
+            esac
+
+            if ! echo "$subject" | grep -qE "$pattern"; then
+              echo "::error::Non-conventional commit: $subject"
+              fail=1
+            fi
+          done < <(git log --format='%s' "$base".."$head")
+
+          if [ "$fail" -eq 1 ]; then
+            echo ""
+            echo "Expected format: <type>[optional scope][!]: <description>"
+            echo "Types: feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert"
+            exit 1
+          fi
+
+      - name: Check no AI mentions in commits
+        if: github.event_name == 'pull_request'
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+
+          # Check both subject and body
+          ai_pattern='Claude|Generated with|Co-Authored-By.*(Claude|AI|GPT|Copilot)|AI-assisted'
+
+          fail=0
+          while IFS= read -r hash; do
+            msg=$(git log -1 --format='%B' "$hash")
+            if echo "$msg" | grep -qEi "$ai_pattern"; then
+              subject=$(git log -1 --format='%s' "$hash")
+              echo "::error::AI mention found in commit: $subject"
+              fail=1
+            fi
+          done < <(git log --format='%H' "$base".."$head")
+
+          if [ "$fail" -eq 1 ]; then
+            echo ""
+            echo "Commit messages must not contain AI tool references."
+            exit 1
+          fi
+
+  boundary-check:
+    name: LAIC Boundary (INV-B2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check no latrix-core imports
+        run: |
+          # INV-B2: LAIC must not import latrix-core
+          violations=""
+
+          # Check all Cargo.toml files in workspace
+          while IFS= read -r toml; do
+            if grep -q 'latrix-core\|latrix_core' "$toml" 2>/dev/null; then
+              violations="${violations}${toml} contains latrix-core dependency\n"
+            fi
+          done < <(find . -name 'Cargo.toml' -type f)
+
+          # Check source files
+          src_hits=$(grep -rn 'latrix_core\|latrix-core' crates/ \
+            --include='*.rs' || true)
+          if [ -n "$src_hits" ]; then
+            violations="${violations}Source files reference latrix-core:\n${src_hits}\n"
+          fi
+
+          if [ -n "$violations" ]; then
+            echo "::error::INV-B2 violation: LAIC must be independent of latrix-core"
+            echo -e "$violations"
+            exit 1
+          fi

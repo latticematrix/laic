@@ -1,0 +1,23 @@
+// Image Classification Skill Contract
+version "1.0.0";
+
+skill image_classify {
+    id = "image-classify";
+
+    input ImageClassifyInput {
+        image_data: bytes;
+        top_k: i32 = 5;
+        threshold: f64 = 0.5;
+    }
+
+    output ImageClassifyOutput {
+        features: tensor<f32>[_, 512];
+        label: string;
+        confidence: f64;
+    }
+
+    error {
+        INVALID_IMAGE = 1;
+        MODEL_LOAD_FAILED = 2;
+    }
+}

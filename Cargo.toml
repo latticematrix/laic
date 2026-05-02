@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = ["crates/laic", "crates/laicc", "crates/laicc-verify"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+repository = "https://github.com/latticematrix/laic"
+
+[workspace.metadata.laic_release]
+# Keep this repo-local inventory aligned with docs/STABILITY.md.
+official_packages = ["laic", "laicc"]
+internal_only_packages = ["laicc-verify"]

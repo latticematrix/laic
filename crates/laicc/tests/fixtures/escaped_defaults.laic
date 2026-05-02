@@ -1,0 +1,16 @@
+version "1.0.0";
+
+skill escaped_defaults {
+    id = "escaped-defaults";
+
+    input EscapedDefaultsInput {
+        message: string = "line1
+line2";
+        path: string = "C:\temp\file.txt";
+    }
+
+    output EscapedDefaultsOutput {
+        note: string = "line1
+line2";
+    }
+}

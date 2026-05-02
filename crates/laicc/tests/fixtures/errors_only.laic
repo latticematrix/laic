@@ -1,0 +1,22 @@
+// Error-only test (skill with error block but minimal fields)
+version "1.0.0";
+
+skill health_check {
+    id = "health-check";
+
+    input HealthInput {
+        service_name: string;
+    }
+
+    output HealthOutput {
+        status: i32;
+        message: string;
+    }
+
+    error {
+        SERVICE_UNAVAILABLE = 1;
+        TIMEOUT = 2;
+        INTERNAL_ERROR = 3;
+        DEPENDENCY_FAILED = 4;
+    }
+}

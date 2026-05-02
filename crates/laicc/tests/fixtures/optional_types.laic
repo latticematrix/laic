@@ -1,0 +1,25 @@
+// Test fixture for optional<T> types.
+
+version "1.0.0";
+
+skill search {
+    id = "semantic-search";
+
+    input SearchInput {
+        query: string;
+        max_results: optional<i32>;
+        filter_tag: optional<string>;
+        threshold: optional<f64>;
+    }
+
+    output SearchOutput {
+        results: list<string>;
+        total_count: i32;
+        next_cursor: optional<string>;
+    }
+
+    error {
+        INVALID_QUERY = 1;
+        INDEX_NOT_READY = 2;
+    }
+}

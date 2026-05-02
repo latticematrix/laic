@@ -1,0 +1,23 @@
+// Text Embedding Skill Contract
+version "1.0.0";
+
+skill embedding {
+    id = "text-embedding";
+
+    input EmbeddingInput {
+        text: string;
+        model: string = "default";
+        max_tokens: i32 = 512;
+    }
+
+    output EmbeddingOutput {
+        embedding: tensor<f32>[768];
+        token_count: i32;
+    }
+
+    error {
+        INPUT_TOO_LONG = 1;
+        MODEL_NOT_FOUND = 2;
+        INFERENCE_FAILED = 3;
+    }
+}

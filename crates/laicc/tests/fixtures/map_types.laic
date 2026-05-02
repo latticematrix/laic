@@ -1,0 +1,17 @@
+// Test fixture for map<K,V> types
+version "1.0.0";
+
+skill map_demo {
+    id = "map-demo";
+
+    input MapDemoInput {
+        metadata: map<string, string>;
+        scores: map<string, f64>;
+        flags: map<i32, bool>;
+    }
+
+    output MapDemoOutput {
+        results: map<string, i32>;
+        labels: map<string, string>;
+    }
+}
