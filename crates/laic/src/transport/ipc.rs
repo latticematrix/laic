@@ -102,8 +102,7 @@ const SUBSCRIBER_BUFFER_SIZE: usize = 16;
 /// the single source of truth for valid payload length.
 ///
 /// TRADEOFF: each `IpcFrame` is ~65 KB on the stack during `send()`.
-/// Simpler than in-place SHM writes; optimize later if profiling
-/// shows this matters.
+/// Simpler than in-place SHM writes; optimize later if profiling shows this matters.
 #[derive(Clone, Copy, ZeroCopySend)]
 #[repr(C)]
 pub(crate) struct IpcFrame {
