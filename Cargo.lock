@@ -997,22 +997,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "laic"
-version = "0.1.0"
-dependencies = [
- "arrow-array",
- "arrow-ipc",
- "arrow-schema",
- "criterion",
- "iceoryx2",
- "prost",
- "quinn",
- "rcgen",
- "rustls",
- "tokio",
-]
-
-[[package]]
 name = "laicc"
 version = "0.1.0"
 dependencies = [
@@ -1031,6 +1015,22 @@ dependencies = [
  "arrow-ipc",
  "arrow-schema",
  "laicc",
+]
+
+[[package]]
+name = "latrix-laic"
+version = "0.1.0"
+dependencies = [
+ "arrow-array",
+ "arrow-ipc",
+ "arrow-schema",
+ "criterion",
+ "iceoryx2",
+ "prost",
+ "quinn",
+ "rcgen",
+ "rustls",
+ "tokio",
 ]
 
 [[package]]

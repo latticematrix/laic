@@ -8,7 +8,7 @@
 
 Current MVP official release artifacts are limited to:
 
-- `laic` Rust crate
+- `latrix-laic` Rust package (library crate name: `laic`)
 - `laicc` Rust crate
 - `laicc` CLI
 
@@ -26,9 +26,9 @@ External users should treat `README.md` as the onboarding entry point, this file
 
 Only the surfaces listed in this section are compatibility-protected for the current MVP scope.
 
-### `laic` crate
+### `latrix-laic` package / `laic` crate
 
-The stable Rust API for `laic` is the documented crate-root surface centered on these exported protocol mechanisms:
+The stable Rust API for the published `latrix-laic` package is the documented `laic` crate-root surface centered on these exported protocol mechanisms:
 
 - transport entry points:
   - `Transport`
@@ -169,7 +169,7 @@ The current MVP release-operations gate includes a reproducible release smoke pa
 
 This gate proves only that:
 
-- `laic` and `laicc` can be packaged as official artifacts
+- `latrix-laic` and `laicc` can be packaged as official artifacts
 - the `laicc` CLI entry point can be invoked
 - the minimal Rust / Python / TypeScript generation path succeeds against `crates/laicc/tests/fixtures/echo.laic`
 
@@ -177,7 +177,7 @@ This gate does not widen the stable surface into runtime, discovery, routing, pr
 
 For the current MVP line, the following smoke failures are release-blocking:
 
-- `cargo package -p laic --allow-dirty`
+- `cargo package -p latrix-laic --allow-dirty`
 - `cargo package -p laicc --allow-dirty`
 - `cargo run -p laicc -- --help`
 - any missing Rust / Python / TypeScript output expected by `scripts/release-smoke.*`

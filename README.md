@@ -8,7 +8,7 @@ It does not define runtime policy, discovery, routing, provider hosting, or clie
 
 The current MVP line treats the following as official release artifacts:
 
-- `laic` Rust crate
+- `latrix-laic` Rust package (library crate name: `laic`)
 - `laicc` Rust crate
 - `laicc` CLI
 
@@ -51,7 +51,7 @@ The current MVP does not promise:
 Use these commands when consuming the repository before a tagged release is published:
 
 ```powershell
-cargo build -p laic
+cargo build -p latrix-laic
 cargo build -p laicc
 cargo install --path crates/laicc
 ```
@@ -61,7 +61,7 @@ cargo install --path crates/laicc
 When the MVP line is published as release artifacts, the official package paths are:
 
 ```powershell
-cargo add laic
+cargo add latrix-laic
 cargo add laicc
 cargo install laicc
 ```
@@ -105,7 +105,7 @@ This does not prove runtime, discovery, routing, provider hosting, or client SDK
 
 For the current MVP line, the following failures are release-blocking:
 
-- `cargo package -p laic --allow-dirty`
+- `cargo package -p latrix-laic --allow-dirty`
 - `cargo package -p laicc --allow-dirty`
 - `cargo run -p laicc -- --help`
 - any missing Rust / Python / TypeScript output expected by `scripts/release-smoke.*`

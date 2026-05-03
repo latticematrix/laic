@@ -1,13 +1,14 @@
-# laic
+# latrix-laic
 
-`laic` is the mechanism-layer Rust crate in the LAIC MVP.
+`latrix-laic` is the published mechanism-layer Rust package in the LAIC MVP.
+Its library crate name remains `laic`.
 It provides transport, protocol, flow-control, emergency-channel, gateway, and minimal trust-domain handshake mechanisms for AI system communication.
 It does not define runtime policy, discovery, routing, provider hosting, or client convenience layers.
 
 ## Install
 
 ```powershell
-cargo add laic
+cargo add latrix-laic
 ```
 
 ## Stable Surface Summary

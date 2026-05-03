@@ -11,5 +11,5 @@ repository = "https://github.com/latticematrix/laic"
 
 [workspace.metadata.laic_release]
 # Keep this repo-local inventory aligned with docs/STABILITY.md.
-official_packages = ["laic", "laicc"]
+official_packages = ["latrix-laic", "laicc"]
 internal_only_packages = ["laicc-verify"]

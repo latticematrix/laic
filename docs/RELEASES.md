@@ -8,7 +8,7 @@ upload has already happened.
 
 The current MVP release artifacts are:
 
-- `laic` Rust crate;
+- `latrix-laic` Rust package (library crate name: `laic`);
 - `laicc` Rust crate;
 - `laicc` CLI.
 
@@ -27,7 +27,7 @@ A release candidate must pass these gates before publication is considered:
 - `cargo clippy --workspace --all-targets -- -D warnings`;
 - `cargo test --workspace`;
 - release smoke on a supported shell;
-- package listing checks for `laic` and `laicc`, including packaged `LICENSE`
+- package listing checks for `latrix-laic` and `laicc`, including packaged `LICENSE`
   files in both official crate source packages;
 - stability-surface review against `docs/STABILITY.md`;
 - boundary review against `docs/BOUNDARY.md`;

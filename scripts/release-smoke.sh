@@ -10,7 +10,7 @@ rm -rf "$smoke_root"
 echo "Release smoke: package official artifacts, verify CLI entry point, and generate minimal bindings."
 echo "This smoke does not prove runtime, discovery, routing, provider hosting, or client SDK behavior."
 
-cargo package -p laic --allow-dirty
+cargo package -p latrix-laic --allow-dirty
 cargo package -p laicc --allow-dirty
 cargo run -p laicc -- --help
 cargo run -p laicc -- crates/laicc/tests/fixtures/echo.laic --lang rust -o "$smoke_root/rust"

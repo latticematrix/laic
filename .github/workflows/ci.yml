@@ -60,7 +60,7 @@ jobs:
       # WHY: keep release-operations evidence explicit instead of hiding it inside generic Test.
       - name: Package official artifacts
         run: |
-          cargo package -p laic --allow-dirty
+          cargo package -p latrix-laic --allow-dirty
           cargo package -p laicc --allow-dirty
       - name: Verify laicc CLI entry point
         run: cargo run -p laicc -- --help

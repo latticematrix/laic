@@ -1,5 +1,5 @@
 [package]
-name = "laic"
+name = "latrix-laic"
 description = "Mechanism-layer transport and contract protocol for AI systems"
 readme = "README.md"
 autobenches = false
@@ -8,6 +8,9 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+
+[lib]
+name = "laic"
 
 [dependencies]
 arrow-array = { version = "54", default-features = false }

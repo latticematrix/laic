@@ -26,7 +26,7 @@ This export does not by itself create a release, tag, GitHub Release, crates.io 
 
 The current MVP release artifacts remain:
 
-- `laic` Rust crate
+- `latrix-laic` Rust package (library crate name: `laic`)
 - `laicc` Rust crate
 - `laicc` CLI
 
