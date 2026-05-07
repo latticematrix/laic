@@ -8,7 +8,7 @@ upload has already happened.
 
 The current MVP release artifacts are:
 
-- `latrix-laic` Rust package (library crate name: `laic`);
+- `latrix-laic` Rust package, imported as Rust crate `laic`;
 - `laicc` Rust crate;
 - `laicc` CLI.
 
@@ -52,6 +52,12 @@ Release smoke verifies that:
 Release smoke does not verify runtime SDK behavior, provider hosting, discovery,
 routing, or application policy.
 
+## Source Package Contents
+
+Cargo source packages may include crate-local tests, fixtures, and benches when they are part of the crate source package. These files are not separate runtime dependencies and are not treated as official release artifacts. They exist so downstream users and reviewers can inspect or re-run crate-local verification from the source package.
+
+Do not treat the presence of `tests/`, `fixtures/`, or `benches/` in `cargo package --list` as LAIC promising a test SDK, benchmark product, runtime harness, or public validation service.
+
 ## Versioning
 
 Before `1.0`, LAIC still treats the stable surface in `docs/STABILITY.md` as
@@ -63,7 +69,7 @@ After `1.0`, stable-surface breaks require a major-version boundary.
 ## Public Repository Cutover
 
 The public repository is a clean downstream target. It receives only public-safe
-content exported from the private development upstream.
+content exported from the controlled development upstream.
 
 Public repository preparation is separate from release publication:
 
@@ -72,5 +78,5 @@ Public repository preparation is separate from release publication:
 - creating a tag does not publish crates;
 - publishing crates requires a separate explicit approval step.
 
-Each public export should record the private source commit and the public commit
-or tag that was produced from it.
+Each public export should record the source commit in controlled release records
+and the public commit or tag that was produced from it.

@@ -253,7 +253,7 @@ impl EmergencyChannel {
 
     /// Receive the next emergency payload as raw bytes.
     ///
-    /// Polls with the emergency channel's 50us interval until data arrives.
+    /// Polls with the emergency channel's 50μs interval until data arrives.
     ///
     /// # Errors
     ///

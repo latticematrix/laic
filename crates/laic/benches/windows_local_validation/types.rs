@@ -106,7 +106,7 @@ pub(super) struct PkiBytes {
 }
 
 pub(super) fn parse_case_filter() -> Result<Vec<ValidationCase>, BenchError> {
-    let Ok(raw) = env::var("LAIC_BHOST_CASE_FILTER") else {
+    let Ok(raw) = env::var("LAIC_WINDOWS_LOCAL_CASE_FILTER") else {
         return Ok(ValidationCase::ALL.to_vec());
     };
     if raw.trim().is_empty() {
@@ -128,7 +128,7 @@ pub(super) fn parse_case_filter() -> Result<Vec<ValidationCase>, BenchError> {
             "local_soak_quic" => ValidationCase::LocalSoakQuic,
             other => {
                 return Err(make_error(format!(
-                    "unknown LAIC_BHOST_CASE_FILTER case '{other}'"
+                    "unknown LAIC_WINDOWS_LOCAL_CASE_FILTER case '{other}'"
                 )));
             }
         };
@@ -139,7 +139,7 @@ pub(super) fn parse_case_filter() -> Result<Vec<ValidationCase>, BenchError> {
 
     if cases.is_empty() {
         return Err(make_error(
-            "LAIC_BHOST_CASE_FILTER did not select any cases",
+            "LAIC_WINDOWS_LOCAL_CASE_FILTER did not select any cases",
         ));
     }
     Ok(cases)
@@ -148,21 +148,24 @@ pub(super) fn parse_case_filter() -> Result<Vec<ValidationCase>, BenchError> {
 impl Settings {
     pub(super) fn from_env() -> Result<Self, BenchError> {
         Ok(Self {
-            payload_bytes: env_usize("LAIC_BHOST_PAYLOAD_BYTES", 1024)?,
-            warmup_count: env_usize("LAIC_BHOST_WARMUP", 10)?,
-            run_count: env_usize("LAIC_BHOST_RUNS", 100)?,
-            fanout_clients: env_usize("LAIC_BHOST_FANOUT_CLIENTS", 4)?,
-            fanout_run_count: env_usize("LAIC_BHOST_FANOUT_RUNS", 50)?,
-            soak_seconds: env_u64("LAIC_BHOST_SOAK_SECONDS", 120)?,
+            payload_bytes: env_usize("LAIC_WINDOWS_LOCAL_PAYLOAD_BYTES", 1024)?,
+            warmup_count: env_usize("LAIC_WINDOWS_LOCAL_WARMUP", 10)?,
+            run_count: env_usize("LAIC_WINDOWS_LOCAL_RUNS", 100)?,
+            fanout_clients: env_usize("LAIC_WINDOWS_LOCAL_FANOUT_CLIENTS", 4)?,
+            fanout_run_count: env_usize("LAIC_WINDOWS_LOCAL_FANOUT_RUNS", 50)?,
+            soak_seconds: env_u64("LAIC_WINDOWS_LOCAL_SOAK_SECONDS", 120)?,
             cases: parse_case_filter()?,
-            investigation_mode: env::var("LAIC_BHOST_CASE_FILTER")
+            investigation_mode: env::var("LAIC_WINDOWS_LOCAL_CASE_FILTER")
                 .map(|value| !value.trim().is_empty())
                 .unwrap_or(false),
-            cross_process_ipc_p95_threshold_us: env_f64("LAIC_BHOST_IPC_P95_US", 50_000.0)?,
-            same_host_quic_p95_threshold_us: env_f64("LAIC_BHOST_QUIC_P95_US", 10_000.0)?,
-            fanout_ipc_p95_threshold_us: env_f64("LAIC_BHOST_FANOUT_IPC_P95_US", 50_000.0)?,
-            fanout_quic_p95_threshold_us: env_f64("LAIC_BHOST_FANOUT_QUIC_P95_US", 20_000.0)?,
-            soak_p95_threshold_us: env_f64("LAIC_BHOST_SOAK_P95_US", 50_000.0)?,
+            cross_process_ipc_p95_threshold_us: env_f64("LAIC_WINDOWS_LOCAL_IPC_P95_US", 50_000.0)?,
+            same_host_quic_p95_threshold_us: env_f64("LAIC_WINDOWS_LOCAL_QUIC_P95_US", 10_000.0)?,
+            fanout_ipc_p95_threshold_us: env_f64("LAIC_WINDOWS_LOCAL_FANOUT_IPC_P95_US", 50_000.0)?,
+            fanout_quic_p95_threshold_us: env_f64(
+                "LAIC_WINDOWS_LOCAL_FANOUT_QUIC_P95_US",
+                20_000.0,
+            )?,
+            soak_p95_threshold_us: env_f64("LAIC_WINDOWS_LOCAL_SOAK_P95_US", 50_000.0)?,
         })
     }
 }

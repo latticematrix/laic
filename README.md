@@ -8,7 +8,7 @@ It does not define runtime policy, discovery, routing, provider hosting, or clie
 
 The current MVP line treats the following as official release artifacts:
 
-- `latrix-laic` Rust package (library crate name: `laic`)
+- `latrix-laic` Rust package, imported as Rust crate `laic`
 - `laicc` Rust crate
 - `laicc` CLI
 
@@ -20,18 +20,32 @@ The following are not official release artifacts:
 
 The authoritative stability contract for the MVP line lives in [docs/STABILITY.md](./docs/STABILITY.md).
 
+## Performance And Usability Evidence (0.2.0)
+
+The `0.2.0` release-candidate line is focused on closing performance and usability validation evidence, not on widening LAIC into runtime policy, discovery, routing, provider hosting, or client SDK behavior.
+
+For `0.2.0`, the publishing package for the mechanism-layer Rust library is `latrix-laic`; the Rust library crate name remains `laic`, so Rust code imports it as `laic`.
+
+Current `0.2.0` candidate evidence includes:
+
+- the reviewed `0.1.0` MVP performance evidence remains version-marked and unchanged;
+- the Windows-local IPC receive-loop optimization remains bounded local-transport evidence, not a new WAN/LAN authority;
+- public CI and release smoke exercise packaging, the `laicc` CLI, Rust / Python / TypeScript generation, Python / TypeScript verification, contract-surface compatibility, and boundary checks.
+
+These are release-candidate evidence lines, not production SLA claims. See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) and [docs/RELEASES.md](./docs/RELEASES.md) for the full boundaries.
+
 ## Performance Evidence (0.1.0 MVP)
 
 The current `0.1.0` MVP evidence shows LAIC's mechanism layer can carry AI-system messages with low overhead across local IPC, localhost QUIC, same-LAN QUIC, and public-WAN QUIC/mTLS test shapes.
 
 Current measured highlights:
 
-- Windows cross-process IPC p95: `43.900us` for 64 KiB payloads.
-- Windows localhost QUIC p95: `792.300us` for 64 KiB payloads.
+- Windows local cross-process IPC p95: `43.900us` for 64 KiB payloads.
+- Windows local localhost QUIC p95: `792.300us` for 64 KiB payloads.
 - Same-LAN QUIC p95: `580.900us` fixed-count, `2076.400us` in a 300s soak, and `1246.700us` in a 4-client fan-out.
-- Public-WAN QUIC/mTLS to a cloud endpoint stays below `20ms` p95 across the validated two-host fixed-count, 300s soak, and 4-client fan-out shapes.
+- Public-WAN QUIC/mTLS to a cloud VM endpoint stays below `20ms` p95 across the reviewed two-host fixed-count, 300s soak, and 4-client fan-out shapes.
 
-These are bounded `0.1.0` MVP performance evidence lines, not production SLA claims. See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for the full parameter table, version marker, and evidence boundaries.
+These are bounded `0.1.0` MVP performance evidence lines, not production SLA claims. The LAN and WAN shapes are reviewed; the current post-optimization Windows local shape is bounded evidence for the reviewed IPC optimization. See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for the full parameter table, version marker, and evidence boundaries.
 
 ## What LAIC Does Not Promise
 
@@ -119,7 +133,7 @@ Start with these files:
 - [docs/STABILITY.md](./docs/STABILITY.md) for stable vs internal/experimental surface
 - [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for measured performance evidence and boundaries
 - [docs/RELEASES.md](./docs/RELEASES.md) for release readiness gates
-- [docs/PUBLIC_EXPORT.md](./docs/PUBLIC_EXPORT.md) for public-export provenance
+- [docs/PUBLIC_EXPORT.md](./docs/PUBLIC_EXPORT.md) for public-export boundaries
 - [CHANGELOG.md](./CHANGELOG.md) for stable-surface changes
 
 ## License

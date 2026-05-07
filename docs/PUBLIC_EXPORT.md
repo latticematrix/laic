@@ -5,17 +5,17 @@ This repository is the public-safe export target for LAIC.
 ## Source
 
 - Public target repository: `latticematrix/laic`
-- Source provenance is retained in private release records, not in this
+- Source provenance is retained in controlled release records, not in this
   public-facing export document.
 
 ## Export Shape
 
 The public export includes release-facing source, package metadata, CI, smoke scripts, crate tests, and release-facing documentation.
 
-It intentionally excludes private development history and local operational material:
+It intentionally excludes non-public development history and local operational material:
 
-- Claude / Codex continuity files
-- private planning notes and developer-memory folders
+- internal continuity files
+- internal planning notes and maintenance-memory folders
 - local performance reports and cloud-test runners
 - spikes and exploratory workspaces
 - machine-local paths, credentials, and reviewer handoff artifacts
@@ -26,7 +26,7 @@ This export does not by itself create a release, tag, GitHub Release, crates.io 
 
 The current MVP release artifacts remain:
 
-- `latrix-laic` Rust package (library crate name: `laic`)
+- `latrix-laic` Rust package, imported as Rust crate `laic`
 - `laicc` Rust crate
 - `laicc` CLI
 

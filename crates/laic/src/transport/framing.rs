@@ -38,7 +38,7 @@ pub async fn write_frame<W: tokio::io::AsyncWrite + Unpin>(
 ) -> Result<(), LaicError> {
     // WHY: symmetric with read_frame's MAX_PAYLOAD_LEN check. Without this,
     // a sender could emit a frame that its own receiver would reject — a
-    // fail-open contract gap (historical F1 regression, 2026-03-15).
+    // fail-open contract gap fixed by the historical oversized-payload regression.
     if msg.header().payload_len > MAX_PAYLOAD_LEN {
         return Err(TransportError::FramingError {
             detail: format!(
@@ -281,7 +281,7 @@ mod tests {
         assert_eq!(r2.payload(), &[0xBB; 20]);
     }
 
-    /// Regression test for historical F1: `write_frame` must reject payloads
+    /// Regression test: `write_frame` must reject payloads
     /// exceeding `MAX_PAYLOAD_LEN`, symmetric with `read_frame`'s check.
     #[tokio::test]
     async fn write_frame_rejects_oversized_payload() {
