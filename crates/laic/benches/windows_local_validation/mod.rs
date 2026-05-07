@@ -34,7 +34,7 @@ fn run() -> Result<(), BenchError> {
     let rows = runtime.block_on(async {
         let mut rows = Vec::new();
         for case in &settings.cases {
-            eprintln!("LAIC_BHOST_CASE_START {}", case.name());
+            eprintln!("LAIC_WINDOWS_LOCAL_CASE_START {}", case.name());
             match case {
                 ValidationCase::CrossProcessIpc => {
                     rows.push(measure_cross_process_ipc(&settings).await?);
@@ -59,14 +59,14 @@ fn run() -> Result<(), BenchError> {
         Ok::<Vec<ValidationRow>, BenchError>(rows)
     })?;
 
-    println!("LAIC_B_HOST_VALIDATION_START");
+    println!("LAIC_WINDOWS_LOCAL_VALIDATION_START");
     println!(
         "case,slice,test_case,path,metric,expected,observed,setup_us,total_us,p50_us,p95_us,p99_us,messages_per_sec,bytes_per_sec,duration_ms,status,detail"
     );
     for row in &rows {
         print_row(row);
     }
-    println!("LAIC_B_HOST_VALIDATION_END");
+    println!("LAIC_WINDOWS_LOCAL_VALIDATION_END");
 
     if rows.iter().all(|row| row.status == "PASS") {
         Ok(())

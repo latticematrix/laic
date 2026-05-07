@@ -139,7 +139,7 @@ pub(super) fn mark_investigation_timing(
 ) {
     if settings.investigation_mode {
         eprintln!(
-            "LAIC_BHOST_INVESTIGATION_TIMING case={case} stage={stage} elapsed_us={:.3}",
+            "LAIC_WINDOWS_LOCAL_INVESTIGATION_TIMING case={case} stage={stage} elapsed_us={:.3}",
             duration_us(&elapsed)
         );
     }

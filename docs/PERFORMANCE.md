@@ -8,22 +8,32 @@ Performance evidence is release-scoped. Do not overwrite an older release's meas
 
 The numbers below belong to `0.1.0 MVP`. They are measured evidence from local validation rigs, same-LAN hosts, and one cloud VM WAN endpoint. They are not a production SLA, not a maximum-capacity claim, and not a promise for every deployment topology.
 
+## 0.2.0 Release-Candidate Note
+
+The `0.2.0` release-candidate line does not overwrite the `0.1.0 MVP` performance table. Its theme is performance and usability validation closeout:
+
+- keep the reviewed `0.1.0` performance evidence version-marked;
+- keep the Windows-local IPC optimization as bounded current evidence, not a new WAN/LAN authority;
+- add public CI and release smoke as release-candidate evidence for documented onboarding and fail-closed paths.
+
+Do not read this section as a production SLA, new WAN/LAN benchmark promotion, hosted-deployment result, or scenario-integration PASS.
+
 ## 0.1.0 MVP
 
 ## Performance Advantages
 
-For `0.1.0 MVP`, LAIC's measured advantage is that the mechanism layer can move AI-system messages with low overhead across four validated transport shapes:
+For `0.1.0 MVP`, LAIC's measured advantage is that the mechanism layer can move AI-system messages with low overhead across four practical transport shapes:
 
 - Local IPC stays in tens of microseconds on the current Windows local validation path after the receive-loop optimization.
 - Localhost QUIC stays below 1 ms p95 in the current Windows local validation path.
-- Same-LAN QUIC stays below 2.1 ms p95 across the validated fixed-count, 300s soak, and 4-client fan-out shapes.
-- Public-WAN QUIC/mTLS to one cloud VM endpoint stays below 20 ms p95 across the validated two-host fixed-count, 300s soak, and 4-client fan-out shapes.
+- Same-LAN QUIC stays below 2.1 ms p95 across the reviewed fixed-count, 300s soak, and 4-client fan-out shapes.
+- Public-WAN QUIC/mTLS to one cloud VM endpoint stays below 20 ms p95 across the reviewed two-host fixed-count, 300s soak, and 4-client fan-out shapes.
 
 This supports a bounded `0.1.0 MVP` performance statement: LAIC has credible mechanism-layer transport evidence for fast local, LAN, and public-WAN communication between LLM-adjacent or agent-adjacent components. It does not claim production SLA, maximum fan-out, packet-loss tolerance, multi-region failover, or real hosted model workload performance.
 
 ## Evidence Basis
 
-The raw validation packets were produced in the private development workspace before this public export. They are summarized here as public-safe release evidence; this repository intentionally does not include private reviewer logs, local machine paths, cloud account details, or transient experiment packets.
+The raw validation packets were produced in the controlled validation workspace before this public export. They are summarized here as public-safe release evidence; this repository intentionally does not include raw reviewer logs, machine-local paths, cloud account details, or transient experiment packets.
 
 | Evidence area | Public status |
 | --- | --- |
@@ -77,7 +87,7 @@ Payload: 65536 B.
 
 ## Public-WAN QUIC/mTLS
 
-Endpoint shape: one cloud VM endpoint. The validated fan-out shape is 4 clients and 50 measured rounds per client.
+Endpoint shape: one cloud VM endpoint. The reviewed fan-out shape is 4 clients and 50 measured rounds per client.
 
 | Path | Shape | Payload | p50_us | p95_us | p99_us | messages_per_sec | bytes_per_sec | roundtrips | errors |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -100,4 +110,4 @@ The current MVP evidence does not claim:
 - multi-endpoint, multi-region, failover, relay, or multi-hop behavior
 - real hosted LLM / agent workload end-to-end performance
 
-An 8-client WAN fan-out experiment was deliberately not promoted into the `0.1.0 MVP` evidence set because it depended on a temporary local manifest variant. Treat the validated public-WAN fan-out claim as limited to the 4-client shape above.
+An 8-client WAN fan-out experiment was deliberately not promoted into the `0.1.0 MVP` evidence set because it was not part of the reproducible public release evidence. Treat the validated public-WAN fan-out claim as limited to the 4-client shape above.

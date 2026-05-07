@@ -48,14 +48,14 @@ pub(super) async fn run_quic_server(args: &[String]) -> Result<(), BenchError> {
     let server = bind_server(&pki.server_tls())?;
     let addr = server.local_addr()?;
     write_ready(&ready_file, &addr.to_string())?;
-    eprintln!("LAIC_BHOST_CHILD_STAGE quic_server_ready {addr}");
+    eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_server_ready {addr}");
     let mut conn = server.accept().await?;
-    eprintln!("LAIC_BHOST_CHILD_STAGE quic_server_accepted");
+    eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_server_accepted");
     let heartbeat = receive_quic(&mut conn, "QUIC child heartbeat").await?;
     ensure_shutdown("QUIC child heartbeat", &heartbeat)?;
-    eprintln!("LAIC_BHOST_CHILD_STAGE quic_server_heartbeat");
+    eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_server_heartbeat");
     serve_quic_connection(&mut conn, payload_bytes, roundtrips).await?;
-    eprintln!("LAIC_BHOST_CHILD_STAGE quic_server_served");
+    eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_server_served");
     let _ = conn.close().await;
     server.close();
     Ok(())
@@ -103,12 +103,12 @@ pub(super) async fn run_quic_fanout_server(args: &[String]) -> Result<(), BenchE
     let server = bind_server(&pki.server_tls())?;
     let addr = server.local_addr()?;
     write_ready(&ready_file, &addr.to_string())?;
-    eprintln!("LAIC_BHOST_CHILD_STAGE quic_fanout_server_ready {addr}");
+    eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_fanout_server_ready {addr}");
 
     let mut conns = Vec::with_capacity(clients);
     for _ in 0..clients {
         let mut conn = server.accept().await?;
-        eprintln!("LAIC_BHOST_CHILD_STAGE quic_fanout_server_accepted");
+        eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_fanout_server_accepted");
         let heartbeat = receive_quic(&mut conn, "QUIC fan-out heartbeat").await?;
         ensure_shutdown("QUIC fan-out heartbeat", &heartbeat)?;
         conns.push(conn);
@@ -123,7 +123,7 @@ pub(super) async fn run_quic_fanout_server(args: &[String]) -> Result<(), BenchE
         }
     }
     drain_quic_shutdown().await;
-    eprintln!("LAIC_BHOST_CHILD_STAGE quic_fanout_server_served");
+    eprintln!("LAIC_WINDOWS_LOCAL_CHILD_STAGE quic_fanout_server_served");
     for conn in &mut conns {
         let _ = conn.close().await;
     }

@@ -439,7 +439,7 @@ pub(super) async fn measure_soak_quic(settings: &Settings) -> Result<ValidationR
     let (samples, total) =
         soak_quic_roundtrips(&mut client, &request, settings.soak_seconds).await?;
     eprintln!(
-        "LAIC_BHOST_CASE_DETAIL local_soak_quic_roundtrips {}",
+        "LAIC_WINDOWS_LOCAL_CASE_DETAIL local_soak_quic_roundtrips {}",
         samples.len()
     );
     client.send(&shutdown_message()).await?;

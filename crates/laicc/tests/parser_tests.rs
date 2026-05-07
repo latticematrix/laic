@@ -2,7 +2,7 @@
 
 #![allow(clippy::unwrap_used)]
 
-use laicc::{compile, Dimension, LaicType, Literal, TensorElementType};
+use laicc::*;
 
 #[test]
 fn test_parse_minimal() {
@@ -251,7 +251,7 @@ fn test_parse_error_invalid_syntax() {
 }
 
 #[test]
-fn test_compile_rejects_nested_list() {
+fn test_parse_nested_list() {
     let src = r#"
         version "1.0.0";
         skill test {
@@ -260,8 +260,8 @@ fn test_compile_rejects_nested_list() {
             output TestOutput { y: i32; }
         }
     "#;
-    let err = compile(src).unwrap_err().to_string();
-    assert!(err.contains("nested list<list<T>>"), "{err}");
+    let err = compile(src).expect_err("nested list should be rejected by public compile");
+    assert!(err.to_string().contains("nested list<list<T>>"), "{err}");
 }
 
 #[test]

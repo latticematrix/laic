@@ -8,7 +8,7 @@
 
 Current MVP official release artifacts are limited to:
 
-- `latrix-laic` Rust package (library crate name: `laic`)
+- `latrix-laic` Rust package, imported as Rust crate `laic`
 - `laicc` Rust crate
 - `laicc` CLI
 
@@ -28,7 +28,9 @@ Only the surfaces listed in this section are compatibility-protected for the cur
 
 ### `latrix-laic` package / `laic` crate
 
-The stable Rust API for the published `latrix-laic` package is the documented `laic` crate-root surface centered on these exported protocol mechanisms:
+The publishable package name is `latrix-laic`. Its Rust library crate name remains `laic`.
+
+The stable Rust API for crate `laic` is the documented crate-root surface centered on these exported protocol mechanisms:
 
 - transport entry points:
   - `Transport`
@@ -73,7 +75,7 @@ The stable `laicc` library contract is the top-level compile/codegen workflow:
 - `generate_python()`
 - `generate_typescript()`
 
-Support types named directly by those signatures are re-exported at the crate root and included only to the extent required to use that top-level workflow:
+The following crate-root support types remain compatibility-protected to preserve the `0.1.0` library surface used with that top-level workflow:
 
 - `CompileError`
 - `LaicFile`
@@ -86,7 +88,7 @@ Support types named directly by those signatures are re-exported at the crate ro
 - `ErrorVariant`
 - `Literal`
 
-Submodule layout under `ast`, `parser`, `validate`, and `codegen` is not independently frozen as public architecture.
+Internal module layout behind parsing, validation, code generation, and AST representation is not a public architecture surface.
 
 ### `laicc` CLI
 
@@ -137,8 +139,8 @@ The current MVP stable protocol-compatibility surface includes:
 The following are intentionally outside the current MVP stable promise:
 
 - `laicc-verify`
-- direct use of `laicc::parser`, `laicc::validate`, `laicc::codegen::*`, `laicc::ast`, `laicc::error`, or internal AST/layout details beyond the documented top-level workflow
-- `laic` internal module layout, transport implementation details, protobuf/Arrow helper internals, and repo-local support code
+- direct use of internal `laicc` parser, validator, codegen, or AST-layout details beyond the documented crate-root workflow and crate-root support types
+- `latrix-laic` / `laic` internal module layout, transport implementation details, protobuf/Arrow helper internals, and repo-local support code
 - `crates/*/tests/**`, `tests/support/**`, runtime fixtures, CI orchestration, local scripts, and benchmark harnesses
 - local development, planning, review, and continuity materials
 - A2 and any wider handshake/session/capability semantics

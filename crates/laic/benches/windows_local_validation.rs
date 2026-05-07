@@ -1,4 +1,4 @@
-#[path = "b_host_local_validation/mod.rs"]
+#[path = "windows_local_validation/mod.rs"]
 mod bench;
 
 fn main() {

@@ -72,7 +72,7 @@ const POLL_INTERVAL: Duration = Duration::from_micros(100);
 
 /// Optional active-poll budget environment variable, in milliseconds.
 ///
-/// WHY: the 2026-04-30 Windows-local validation investigation proved a timer
+/// WHY: the 2026-04-30 Windows-local investigation proved a timer
 /// rounding trap for hot cross-process IPC benchmarks, not a universal
 /// transport policy. Keep active polling opt-in so production/default callers
 /// and other platforms do not inherit a CPU/latency tradeoff that they have
@@ -321,10 +321,9 @@ impl IpcConnection {
 
     /// Receive the next LAIC message from shared memory.
     ///
-    /// Polls the iceoryx2 subscriber and falls back to the default 100us
-    /// sleep interval until a message arrives. Callers may opt into a bounded
-    /// active-yield window with the
-    /// `LAIC_IPC_ACTIVE_POLL_BUDGET_MS` environment variable.
+    /// Polls the iceoryx2 subscriber and falls back to the default sleep
+    /// interval until a message arrives. A caller may explicitly opt into a
+    /// bounded active-yield window with `LAIC_IPC_ACTIVE_POLL_BUDGET_MS`.
     ///
     /// # Errors
     ///
@@ -337,7 +336,8 @@ impl IpcConnection {
         }
 
         let active_poll_budget = active_poll_budget();
-        let investigation_timing = std::env::var_os("LAIC_BHOST_IPC_RECEIVE_TIMING").is_some();
+        let investigation_timing =
+            std::env::var_os("LAIC_WINDOWS_LOCAL_IPC_RECEIVE_TIMING").is_some();
         let receive_start =
             (investigation_timing || active_poll_budget.is_some()).then(Instant::now);
         let active_poll_until =
@@ -352,7 +352,7 @@ impl IpcConnection {
                 Ok(Some(sample)) => {
                     if investigation_timing {
                         eprintln!(
-                            "LAIC_BHOST_INVESTIGATION_IPC_RECEIVE empty_polls={empty_polls} active_yields={active_yields} requested_sleep_us={:.3} actual_sleep_us={:.3} elapsed_us={:.3}",
+                            "LAIC_WINDOWS_LOCAL_INVESTIGATION_IPC_RECEIVE empty_polls={empty_polls} active_yields={active_yields} requested_sleep_us={:.3} actual_sleep_us={:.3} elapsed_us={:.3}",
                             duration_us(requested_sleep),
                             duration_us(actual_sleep),
                             duration_us(receive_start.map_or(Duration::ZERO, |start| {

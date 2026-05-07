@@ -15,6 +15,33 @@ fn codegen_fixture(name: &str) -> String {
     laicc::generate_rust(&file).unwrap_or_else(|e| panic!("codegen {name}: {e}"))
 }
 
+#[test]
+fn crate_root_support_type_reexports_remain_available() {
+    use laicc::{compile, generate_rust, CompileError, LaicFile, LaicType, SkillDef};
+
+    let src = r#"
+        version "1.0.0";
+        skill echo {
+            id = "echo";
+            input EchoInput { text: string; }
+            output EchoOutput { text: string; }
+        }
+    "#;
+
+    let file: LaicFile = compile(src).unwrap_or_else(|e| panic!("compile failed: {e}"));
+    let skill: &SkillDef = &file.skills[0];
+    assert!(matches!(skill.input.fields[0].ty, LaicType::String));
+
+    let generated = generate_rust(&file).unwrap_or_else(|e| panic!("codegen failed: {e}"));
+    assert!(generated.contains("pub struct EchoInput"));
+
+    let err: CompileError = compile("not valid laic").expect_err("invalid source should fail");
+    assert!(matches!(
+        err,
+        CompileError::Parse(_) | CompileError::Validation(_) | CompileError::Codegen(_)
+    ));
+}
+
 // -----------------------------------------------------------------------
 // Parse + validate fixtures
 // -----------------------------------------------------------------------
