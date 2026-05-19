@@ -20,13 +20,30 @@ This changelog does not exist to mirror every internal refactor, repo-local fixt
 
 ## Unreleased
 
-The `0.2.0` release candidate is not yet published.
+No unreleased stable-surface changes are recorded yet.
 
-## 0.2.0 - Pending Release
+## 0.2.1 - 2026-05-19
 
 ### Release Theme
 
-- Prepares the public release-candidate line for performance and usability validation evidence closeout.
+- Patch release candidate for `laicc` CLI diagnostics and onboarding clarity.
+
+### Changed
+
+- Improved `laicc` CLI error reporting so missing input files include the failed path.
+- Rejected unsupported `--lang` values during CLI argument parsing before input file I/O.
+- Clarified the repository-local `laicc` quickstart in `README.md`, including supported language targets, default target behavior, output file names, and common error cases.
+- Added an installed `laicc` quickstart in `README.md` with a self-contained minimal `.laic` example.
+
+### Breaking Changes
+
+- None. The `laicc` CLI parameter names, supported language values, default language, and generated output naming remain unchanged.
+
+## 0.2.0 - 2026-05-07
+
+### Release Theme
+
+- Published the `0.2.0` public line for performance and usability validation evidence closeout.
 
 ### Changed
 
@@ -35,7 +52,8 @@ The `0.2.0` release candidate is not yet published.
 
 ### Added
 
-- Added release-candidate CI and smoke coverage for package checks, the `laicc` CLI, Rust / Python / TypeScript generation, Python / TypeScript verification, contract-surface compatibility, and boundary checks.
+- Added release CI and smoke coverage for package checks, the `laicc` CLI, Rust / Python / TypeScript generation, Python / TypeScript verification, contract-surface compatibility, and boundary checks.
+- Added full repo-local usability gate coverage for tier 0 health checks, PowerShell and Git Bash release smoke, Rust / Python / TypeScript minimal consumer paths, a contract-drift fail-closed negative, and a QUIC/mTLS trust-failure negative.
 - Added release-facing documentation that keeps `0.1.0` performance evidence version-marked while describing the `0.2.0` validation-readiness theme.
 
 ### Breaking Changes

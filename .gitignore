@@ -13,24 +13,11 @@
 Thumbs.db
 desktop.ini
 
-# Claude shared hook baseline
-# WHY: settings.json and repo-aware hook scripts are versioned onboarding assets.
-# Only continuity files stay local.
-.claude/continue/
-
-# Codex local continuity data (not committed)
+# Local automation and continuity state
 .codex/
-
-# Local agent instructions copy (not committed)
+.claude/
+.githooks/
 AGENTS.md
-
-# Git hooks shared baseline
-# WHY: pre-commit is a versioned onboarding artifact; keep other local hook experiments ignored.
-.githooks/*
-!.githooks/pre-commit
-
-# Spike build artifacts (not part of workspace CI)
-spikes/*/target/
 
 # Logs and temp files
 *.log

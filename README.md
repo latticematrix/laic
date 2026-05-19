@@ -22,30 +22,29 @@ The authoritative stability contract for the MVP line lives in [docs/STABILITY.m
 
 ## Performance And Usability Evidence (0.2.0)
 
-The `0.2.0` release-candidate line is focused on closing performance and usability validation evidence, not on widening LAIC into runtime policy, discovery, routing, provider hosting, or client SDK behavior.
+The published `0.2.0` line is focused on closing performance and usability validation evidence, not on widening LAIC into runtime policy, discovery, routing, provider hosting, or client SDK behavior.
 
 For `0.2.0`, the publishing package for the mechanism-layer Rust library is `latrix-laic`; the Rust library crate name remains `laic`, so Rust code imports it as `laic`.
 
-Current `0.2.0` candidate evidence includes:
+Current `0.2.0` evidence includes:
 
 - the reviewed `0.1.0` MVP performance evidence remains version-marked and unchanged;
-- the Windows-local IPC receive-loop optimization remains bounded local-transport evidence, not a new WAN/LAN authority;
+- the Windows-local IPC receive-loop optimization is recorded as bounded `0.2.0` local-transport evidence, not a new WAN/LAN authority;
 - public CI and release smoke exercise packaging, the `laicc` CLI, Rust / Python / TypeScript generation, Python / TypeScript verification, contract-surface compatibility, and boundary checks.
 
-These are release-candidate evidence lines, not production SLA claims. See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) and [docs/RELEASES.md](./docs/RELEASES.md) for the full boundaries.
+These are release evidence lines, not production SLA claims. See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) and [docs/RELEASES.md](./docs/RELEASES.md) for the full boundaries.
 
 ## Performance Evidence (0.1.0 MVP)
 
-The current `0.1.0` MVP evidence shows LAIC's mechanism layer can carry AI-system messages with low overhead across local IPC, localhost QUIC, same-LAN QUIC, and public-WAN QUIC/mTLS test shapes.
+The reviewed `0.1.0` MVP evidence shows LAIC's mechanism layer can carry AI-system messages with low overhead across local loopback, same-LAN QUIC, and public-WAN QUIC/mTLS test shapes.
 
 Current measured highlights:
 
-- Windows local cross-process IPC p95: `43.900us` for 64 KiB payloads.
-- Windows local localhost QUIC p95: `792.300us` for 64 KiB payloads.
+- Baseline local loopback evidence remains version-marked in [docs/PERFORMANCE.md](./docs/PERFORMANCE.md).
 - Same-LAN QUIC p95: `580.900us` fixed-count, `2076.400us` in a 300s soak, and `1246.700us` in a 4-client fan-out.
 - Public-WAN QUIC/mTLS to a cloud VM endpoint stays below `20ms` p95 across the reviewed two-host fixed-count, 300s soak, and 4-client fan-out shapes.
 
-These are bounded `0.1.0` MVP performance evidence lines, not production SLA claims. The LAN and WAN shapes are reviewed; the current post-optimization Windows local shape is bounded evidence for the reviewed IPC optimization. See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for the full parameter table, version marker, and evidence boundaries.
+These are bounded `0.1.0` MVP performance evidence lines, not production SLA claims. The post-optimization Windows-local table is separately marked as `0.2.0` evidence in [docs/PERFORMANCE.md](./docs/PERFORMANCE.md).
 
 ## What LAIC Does Not Promise
 
@@ -62,7 +61,7 @@ The current MVP does not promise:
 
 ### From This Repository
 
-Use these commands when consuming the repository before a tagged release is published:
+Use these commands when consuming this repository directly:
 
 ```powershell
 cargo build -p latrix-laic
@@ -72,7 +71,7 @@ cargo install --path crates/laicc
 
 ### From a Published Release
 
-When the MVP line is published as release artifacts, the official package paths are:
+For published release artifacts, the official package paths are:
 
 ```powershell
 cargo add latrix-laic
@@ -80,10 +79,11 @@ cargo add laicc
 cargo install laicc
 ```
 
-## Quickstart
+## Quickstart From This Repository
 
 This minimal smoke path proves the contract/codegen surface.
 It does not prove any runtime SDK or provider-hosting capability.
+Run commands from the repository root.
 
 ```powershell
 cargo run -p laicc -- crates/laicc/tests/fixtures/echo.laic --lang rust -o .tmp/laicc-smoke
@@ -93,12 +93,52 @@ Expected output:
 
 - generated file: `.tmp/laicc-smoke/echo_laic.rs`
 
-You can switch the target language without changing the contract:
+You can switch the target language without changing the contract.
+The supported `--lang` values are `rust`, `python`, and `typescript`; the default is `rust`.
+For `echo.laic`, the generated file name is `echo_laic.rs`, `echo_laic.py`, or `echo_laic.ts`.
 
 ```powershell
 cargo run -p laicc -- crates/laicc/tests/fixtures/echo.laic --lang python -o .tmp/laicc-smoke
 cargo run -p laicc -- crates/laicc/tests/fixtures/echo.laic --lang typescript -o .tmp/laicc-smoke
 ```
+
+Common CLI errors:
+
+- `failed to read input file '<path>'`: the input `.laic` path does not exist or is not readable.
+- `invalid value '<value>' for '--lang <LANG>'`: use `rust`, `python`, or `typescript`.
+
+## Quickstart After Installing `laicc`
+
+After `cargo install laicc`, use the installed `laicc` command with a local `.laic` file.
+Create `echo.laic`:
+
+```laic
+version "1.0.0";
+
+skill echo {
+    id = "echo";
+
+    input EchoInput {
+        text: string;
+    }
+
+    output EchoOutput {
+        text: string;
+    }
+}
+```
+
+Generate Rust bindings:
+
+```powershell
+laicc ./echo.laic --lang rust -o ./generated
+```
+
+Expected output:
+
+- generated file: `./generated/echo_laic.rs`
+
+The same local contract can target Python or TypeScript by changing `--lang` to `python` or `typescript`.
 
 ## Release Smoke
 
@@ -124,7 +164,7 @@ For the current MVP line, the following failures are release-blocking:
 - `cargo run -p laicc -- --help`
 - any missing Rust / Python / TypeScript output expected by `scripts/release-smoke.*`
 
-## Release-Facing Docs
+## Documentation Entry Points
 
 Start with these files:
 
