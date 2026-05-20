@@ -6,7 +6,7 @@
 #![deny(missing_docs)]
 #![warn(clippy::pedantic)]
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 
 /// LAIC IDL compiler — compiles `.laic` skill contracts to Rust, Python, and TypeScript bindings.
@@ -17,12 +17,20 @@ struct Cli {
     input: PathBuf,
 
     /// Target language (`rust`, `python`, or `typescript`).
-    #[arg(long, default_value = "rust")]
-    lang: String,
+    #[arg(long, value_enum, default_value = "rust")]
+    lang: TargetLanguage,
 
     /// Output directory.
     #[arg(short, long, default_value = ".")]
     output: PathBuf,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum TargetLanguage {
+    Rust,
+    Python,
+    #[value(name = "typescript")]
+    TypeScript,
 }
 
 fn main() {
@@ -32,22 +40,19 @@ fn main() {
     }
 }
 
-fn run() -> Result<(), laicc::CompileError> {
+fn run() -> Result<(), String> {
     let cli = Cli::parse();
 
-    let source = std::fs::read_to_string(&cli.input)?;
-    let file = laicc::compile(&source)?;
+    let source = std::fs::read_to_string(&cli.input)
+        .map_err(|err| format!("failed to read input file '{}': {err}", cli.input.display()))?;
+    let file = laicc::compile(&source).map_err(|err| err.to_string())?;
 
-    let (code, ext) = match cli.lang.as_str() {
-        "rust" => (laicc::generate_rust(&file)?, "rs"),
-        "python" => (laicc::generate_python(&file)?, "py"),
-        "typescript" => (laicc::generate_typescript(&file)?, "ts"),
-        other => {
-            return Err(laicc::CompileError::Codegen(format!(
-                "unsupported target language: '{other}' (available: rust, python, typescript)"
-            )));
-        }
+    let (code, ext) = match cli.lang {
+        TargetLanguage::Rust => (laicc::generate_rust(&file), "rs"),
+        TargetLanguage::Python => (laicc::generate_python(&file), "py"),
+        TargetLanguage::TypeScript => (laicc::generate_typescript(&file), "ts"),
     };
+    let code = code.map_err(|err| err.to_string())?;
 
     let stem = cli
         .input
@@ -55,8 +60,18 @@ fn run() -> Result<(), laicc::CompileError> {
         .and_then(|s| s.to_str())
         .unwrap_or("output");
     let out_path = cli.output.join(format!("{stem}_laic.{ext}"));
-    std::fs::create_dir_all(&cli.output)?;
-    std::fs::write(&out_path, code)?;
+    std::fs::create_dir_all(&cli.output).map_err(|err| {
+        format!(
+            "failed to create output directory '{}': {err}",
+            cli.output.display()
+        )
+    })?;
+    std::fs::write(&out_path, code).map_err(|err| {
+        format!(
+            "failed to write output file '{}': {err}",
+            out_path.display()
+        )
+    })?;
     eprintln!("wrote {}", out_path.display());
 
     Ok(())
