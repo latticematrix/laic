@@ -1,6 +1,6 @@
 # LAIC
 
-LAIC is an independent mechanism-layer protocol project for high-throughput AI system communication.
+LAIC (Latrix AI Interconnect) is an independent mechanism-layer protocol project for high-throughput AI system communication.
 It focuses on transport, contract compilation, flow control, transport security, and emergency delivery.
 It does not define runtime policy, discovery, routing, provider hosting, or client convenience layers.
 
@@ -17,6 +17,9 @@ The following are not official release artifacts:
 - `laicc-verify`
 - tests, fixtures, CI helpers, and benchmark harnesses
 - local development, planning, review, or continuity materials
+
+Current published version: `0.2.1`.
+The `0.2.1` release is a patch release for `laicc` CLI diagnostics and onboarding clarity; performance evidence remains version-marked to the release that produced it.
 
 The authoritative stability contract for the MVP line lives in [docs/STABILITY.md](./docs/STABILITY.md).
 
