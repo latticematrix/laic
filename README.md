@@ -4,6 +4,40 @@ LAIC (Latrix AI Interconnect) is an independent mechanism-layer protocol project
 It focuses on transport, contract compilation, flow control, transport security, and emergency delivery.
 It does not define runtime policy, discovery, routing, provider hosting, or client convenience layers.
 
+## Current Public Release
+
+The current public release is `0.2.1`.
+It is a patch release for `laicc` CLI diagnostics and onboarding clarity; it is not a protocol expansion or performance re-baseline.
+
+## Mechanism Layer At A Glance
+
+This diagram is a mechanism map, not a runtime or application architecture.
+LAIC owns contract compilation, transport mechanisms, flow control, emergency delivery, and the QUIC minimal trust-domain handshake; caller-owned policy remains outside LAIC.
+
+```mermaid
+flowchart LR
+    Contract[".laic skill contract"] --> Compiler["laicc compiler"]
+    Compiler --> Rust["Rust generated surface"]
+    Compiler --> Python["Python generated surface"]
+    Compiler --> TypeScript["TypeScript generated surface"]
+
+    Rust --> Message["message / header / error model"]
+    Python --> Message
+    TypeScript --> Message
+
+    subgraph Mechanism["LAIC mechanism layer"]
+        Message --> Codec["Arrow / Protobuf codecs"]
+        Codec --> Flow["flow control / backpressure"]
+        Flow --> IPC["IPC transport"]
+        Flow --> QUIC["QUIC transport"]
+        Emergency["emergency channel"] --> IPC
+        Emergency --> QUIC
+        Trust["minimal trust-domain handshake over established QUIC connection"] --> QUIC
+    end
+
+    Boundary["Not LAIC: runtime policy, discovery, routing, provider hosting, workflow orchestration"]
+```
+
 ## Official MVP Release Artifacts
 
 The current MVP line treats the following as official release artifacts:
@@ -18,8 +52,6 @@ The following are not official release artifacts:
 - tests, fixtures, CI helpers, and benchmark harnesses
 - local development, planning, review, or continuity materials
 
-Current published version: `0.2.1`.
-The `0.2.1` release is a patch release for `laicc` CLI diagnostics and onboarding clarity; performance evidence remains version-marked to the release that produced it.
 
 The authoritative stability contract for the MVP line lives in [docs/STABILITY.md](./docs/STABILITY.md).
 
