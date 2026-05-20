@@ -26,7 +26,7 @@ No unreleased stable-surface changes are recorded yet.
 
 ### Release Theme
 
-- Patch release candidate for `laicc` CLI diagnostics and onboarding clarity.
+- Patch release for `laicc` CLI diagnostics and onboarding clarity.
 
 ### Changed
 
