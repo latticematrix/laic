@@ -175,6 +175,16 @@ Expected output:
 
 The same local contract can target Python or TypeScript by changing `--lang` to `python` or `typescript`.
 
+## Mechanism-Only Demo
+
+For a clean-checkout demo that compiles one local `.laic` contract into Rust,
+Python, and TypeScript bindings, see
+[examples/mechanism-only](./examples/mechanism-only/README.md).
+
+The demo is limited to LAIC's contract and code-generation mechanism. It does
+not prove runtime, routing, provider hosting, workflow orchestration,
+marketplace, or multi-agent behavior.
+
 ## Release Smoke
 
 Run one of these from the repository root:
