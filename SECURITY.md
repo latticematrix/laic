@@ -1,43 +1,81 @@
 # Security Policy
 
-## Reporting a Vulnerability
+## Supported Scope
 
-If you believe you have found a security vulnerability in this repository, please use GitHub's private vulnerability reporting feature.
+Security reports are in scope when they affect LAIC-owned release artifacts or
+mechanism-layer behavior:
 
+- `latrix-laic` / Rust crate `laic`;
+- `laicc` library and CLI;
+- `.laic` contract parsing, validation, and code generation;
+- IPC and QUIC transport mechanism behavior;
+- protocol framing, codecs, flow control, emergency delivery, gateway behavior,
+  and the minimal trust-domain handshake;
+- release packaging or source-package contents for official LAIC artifacts.
+
+The following are not LAIC security scope by themselves:
+
+- Runtime, Core, Secure, or downstream application integration behavior;
+- discovery, routing, scheduling, provider hosting, workflow, marketplace, or
+  multi-agent orchestration behavior;
+- application authorization, IAM, ACL, business policy, or user account systems;
+- public TCK, certification, or partner-ecosystem claims;
+- benchmark-only performance comparisons.
+
+If a report involves a downstream system and LAIC together, separate the
+LAIC-owned mechanism issue from the downstream policy or integration issue as
+clearly as possible.
+
+## Supported Versions
+
+Security review is focused on the current published MVP line and the current
+`main` branch. Older versions may receive documentation guidance or a migration
+recommendation, but patch handling depends on severity, practical exploitability,
+and release-surface impact.
+
+## Reporting A Vulnerability
+
+Use GitHub private vulnerability reporting for this repository when available.
+If that is not available, contact the maintainers through the repository owner
+or project communication channel without posting exploit details publicly.
 Do not open a public issue for suspected security problems.
 
-Please include, when possible:
+Do not include secrets in a report. Redact tokens, credentials, private keys,
+internal hostnames, customer data, and personal data. If a proof of concept is
+needed, keep it minimal and focused on the LAIC-owned mechanism.
 
-  - a clear description of the issue
-  - the affected crate, module, or surface
-  - the impact you believe it may have
-  - reproduction steps or a minimal proof of concept
-  - any relevant environment details
+Please include:
 
-  ## Scope
+- affected artifact or component;
+- affected version, commit, or package source;
+- operating system and Rust toolchain when relevant;
+- minimal reproduction steps;
+- expected result and actual result;
+- whether the issue affects parsing/codegen, transport/framing, flow control,
+  emergency delivery, handshake, packaging, or documentation;
+- any known workaround.
 
-This repository publishes the LAIC mechanism-layer crates and release artifacts, including:
+## Handling Expectations
 
-  - `latrix-laic` (Rust package; library crate name: `laic`)
-  - `laicc`
+The maintainers will first classify whether the report is within LAIC scope. If
+it is outside LAIC scope, the response may be a boundary clarification rather
+than a code change.
 
-Reports are most helpful when they clearly distinguish:
+For in-scope reports, the expected handling path is:
 
-  - mechanism-layer transport or protocol issues
-  - contract/code generation issues
-  - release artifact or packaging issues
+1. acknowledge receipt when maintainers see the report;
+2. reproduce or narrow the issue;
+3. classify severity and affected stable surface;
+4. decide whether the fix is documentation-only, patch-level, or requires a new
+   minor-version plan;
+5. run the normal verification and release gates before any public release.
 
-  ## Response Expectations
+Passing CI or preparing a patch does not by itself publish a release, create a
+tag, create a GitHub Release, or publish crates. Publication remains a separate
+explicit approval step.
 
-We will review incoming reports and try to confirm whether the issue is valid and in scope.
+## Disclosure
 
-If the report is accepted, we will coordinate remediation and disclosure through GitHub security advisories when appropriate.
-
-  ## Out of Scope
-
-The following are generally out of scope for this repository's security policy unless they directly affect published LAIC release artifacts:
-
-  - runtime policy decisions
-  - service discovery or routing layers
-  - provider hosting logic
-  - unrelated downstream integration code
+Please give maintainers a reasonable opportunity to investigate and prepare a
+fix before public disclosure. Coordinated disclosure should avoid publishing
+working exploit details until an advisory, patch, or boundary decision is ready.
