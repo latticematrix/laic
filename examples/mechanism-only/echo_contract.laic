@@ -1,0 +1,13 @@
+version "1.0.0";
+
+skill echo_contract {
+    id = "echo_contract";
+
+    input EchoInput {
+        text: string;
+    }
+
+    output EchoOutput {
+        text: string;
+    }
+}
