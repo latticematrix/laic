@@ -209,6 +209,8 @@ Start with these files:
 - [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for measured performance evidence and boundaries
 - [docs/RELEASES.md](./docs/RELEASES.md) for release readiness gates
 - [docs/PUBLIC_EXPORT.md](./docs/PUBLIC_EXPORT.md) for public-export boundaries
+- [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution scope and pull request expectations
+- [SECURITY.md](./SECURITY.md) for security reporting scope and handling expectations
 - [CHANGELOG.md](./CHANGELOG.md) for stable-surface changes
 
 ## License
