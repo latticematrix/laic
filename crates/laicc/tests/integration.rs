@@ -252,6 +252,19 @@ fn codegen_embedding_contains_error_enum() {
 }
 
 #[test]
+fn codegen_embedding_default_fields_validate_arrow_types_before_falling_back() {
+    let code = codegen_fixture("embedding");
+    assert!(
+        code.contains("field.data_type() != &DataType::Utf8"),
+        "missing string default field type guard"
+    );
+    assert!(
+        code.contains("field.data_type() != &DataType::Int32"),
+        "missing integer default field type guard"
+    );
+}
+
+#[test]
 fn codegen_multi_skill_generates_all() {
     let code = codegen_fixture("multi_skill");
     assert!(code.contains("pub struct TokenizeInput"));

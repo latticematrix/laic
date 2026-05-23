@@ -103,6 +103,41 @@ except ValueError as exc:
 print("PASS")
 "#;
 
+pub(crate) const EMBEDDING_INPUT_MODEL_TYPE_MISMATCH_SCRIPT: &str = r#"
+schema = pa.schema([
+    pa.field("text", pa.string(), nullable=False),
+    pa.field("model", pa.int32(), nullable=False),
+    pa.field("max_tokens", pa.int32(), nullable=False),
+], metadata={
+    b"laic.skill_id": b"text-embedding",
+    b"laic.version": b"1.0.0",
+    b"laic.direction": b"input",
+})
+
+batch = pa.RecordBatch.from_pydict({
+    "text": ["hello"],
+    "model": [7],
+    "max_tokens": [512],
+}, schema=schema)
+
+sink = pa.BufferOutputStream()
+writer = ipc.new_stream(sink, schema)
+writer.write_batch(batch)
+writer.close()
+data = sink.getvalue().to_pybytes()
+
+rejected = False
+try:
+    EmbeddingInput.from_ipc(data)
+except Exception:
+    rejected = True
+
+if not rejected:
+    raise AssertionError("expected scalar field type rejection")
+
+print("PASS")
+"#;
+
 #[cfg(test)]
 mod tests {
     use std::ffi::OsStr;

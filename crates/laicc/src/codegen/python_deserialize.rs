@@ -2,6 +2,7 @@
 
 use crate::ast::{Dimension, FieldDef, LaicType, StructDef, TensorElementType};
 use crate::codegen::python_bytes_literal;
+use crate::codegen::python_types::pyarrow_type;
 
 /// Emit `from_ipc(cls, data: bytes) -> Self` classmethod body.
 pub fn generate_from_ipc(
@@ -100,24 +101,39 @@ fn emit_field_extraction(out: &mut String, field: &FieldDef) {
 fn emit_scalar_extraction(
     out: &mut String,
     name: &str,
-    _ty: &LaicType,
+    ty: &LaicType,
     default: &Option<crate::ast::Literal>,
 ) {
+    let expected_type = pyarrow_type(ty);
     match default {
         Some(lit) => {
             let default_val = crate::codegen::python_types::literal_to_python(lit);
             out.push_str(&format!(
                 "        _col = batch.column(\"{name}\") if \"{name}\" in batch.schema.names else None\n"
             ));
+            out.push_str("        if _col is not None:\n");
             out.push_str(&format!(
-                "        {name} = _col[0].as_py() if _col is not None else {default_val}\n"
+                "            _field = batch.schema.field(\"{name}\")\n"
             ));
+            out.push_str(&format!("            if _field.type != {expected_type}:\n"));
+            out.push_str(&format!(
+                "                raise ValueError(f\"field '{name}': expected {expected_type}, got {{_field.type}}\")\n"
+            ));
+            out.push_str(&format!("            {name} = _col[0].as_py()\n"));
+            out.push_str("        else:\n");
+            out.push_str(&format!("            {name} = {default_val}\n"));
         }
         None => {
             // WHY: .as_py() is the universal PyArrow scalar to Python conversion.
+            out.push_str(&format!("        _col = batch.column(\"{name}\")\n"));
             out.push_str(&format!(
-                "        {name} = batch.column(\"{name}\")[0].as_py()\n"
+                "        _field = batch.schema.field(\"{name}\")\n"
             ));
+            out.push_str(&format!("        if _field.type != {expected_type}:\n"));
+            out.push_str(&format!(
+                "            raise ValueError(f\"field '{name}': expected {expected_type}, got {{_field.type}}\")\n"
+            ));
+            out.push_str(&format!("        {name} = _col[0].as_py()\n"));
         }
     }
 }

@@ -66,19 +66,20 @@ pub fn ts_arrow_datatype(ty: &LaicType) -> String {
     }
 }
 
-/// Convert a LAIC literal to TypeScript source.
+/// Convert a LAIC literal to TypeScript source for a concrete field type.
 #[must_use]
-pub fn literal_to_ts(lit: &Literal) -> String {
-    match lit {
-        Literal::String(value) => format!(
+pub fn literal_to_ts(lit: &Literal, ty: &LaicType) -> String {
+    match (lit, ty) {
+        (Literal::Integer(value), LaicType::I64) => format!("{value}n"),
+        (Literal::Integer(value), _) => value.to_string(),
+        (Literal::String(value), _) => format!(
             "\"{}\"",
             crate::codegen::escape_string_literal_body(
                 value,
                 crate::codegen::StringLiteralDialect::PythonLike
             )
         ),
-        Literal::Integer(value) => value.to_string(),
-        Literal::Float(value) => {
+        (Literal::Float(value), _) => {
             let rendered = format!("{value}");
             if rendered.contains('.') {
                 rendered
@@ -86,7 +87,7 @@ pub fn literal_to_ts(lit: &Literal) -> String {
                 format!("{rendered}.0")
             }
         }
-        Literal::Bool(value) => value.to_string(),
+        (Literal::Bool(value), _) => value.to_string(),
     }
 }
 
