@@ -11,8 +11,8 @@ use std::process::Command;
 
 use python_verify_support::{
     assert_process_succeeded, driver_path, fresh_case_dir, python_command, python_driver_script,
-    write_generated_package, LIST_TENSOR_METADATA_REQUIRED_SCRIPT,
-    OPTIONAL_TENSOR_METADATA_REQUIRED_SCRIPT,
+    write_generated_package, EMBEDDING_INPUT_MODEL_TYPE_MISMATCH_SCRIPT,
+    LIST_TENSOR_METADATA_REQUIRED_SCRIPT, OPTIONAL_TENSOR_METADATA_REQUIRED_SCRIPT,
 };
 
 fn compile_and_generate(source: &str) -> String {
@@ -151,6 +151,16 @@ assert EmbeddingError.INFERENCE_FAILED == 3
 print("PASS")
 "#,
         "embedding",
+    );
+}
+
+#[test]
+fn embedding_default_field_type_mismatch_rejected() {
+    let code = compile_and_generate(&load_fixture("embedding.laic"));
+    verify_roundtrip(
+        &code,
+        EMBEDDING_INPUT_MODEL_TYPE_MISMATCH_SCRIPT,
+        "embedding_default_field_type_mismatch_rejected",
     );
 }
 

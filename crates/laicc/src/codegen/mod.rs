@@ -9,6 +9,7 @@ pub mod python_serialize;
 pub mod python_types;
 pub mod rust_contract;
 pub mod rust_deserialize;
+pub mod rust_deserialize_fields;
 pub mod rust_serialize;
 pub mod rust_types;
 // Keep the TypeScript split parallel to the Python path so future maintainers can

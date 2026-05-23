@@ -15,6 +15,7 @@ mod typescript_verify_support;
 use std::path::Path;
 use std::process::{Command, Output};
 
+use support::i64_default_source;
 use support::nul_digit_defaults_source;
 use typescript_verify_support::{
     npm_program, runtime_dir, write_compile_case, write_roundtrip_case,
@@ -155,6 +156,43 @@ try {
   if (!message.includes("more than one RecordBatch")) {
     throw error;
   }
+}
+
+console.log("PASS");
+"#;
+
+const EMBEDDING_DEFAULT_FIELD_TYPE_MISMATCH_REJECTED_DRIVER: &str = r#"
+import * as arrow from "apache-arrow";
+import { EmbeddingInput } from "./index";
+
+const schema = new arrow.Schema([
+  new arrow.Field("text", new arrow.Utf8(), false),
+  new arrow.Field("model", new arrow.Int32(), false),
+  new arrow.Field("max_tokens", new arrow.Int32(), false),
+], new Map([
+  ["laic.skill_id", "text-embedding"],
+  ["laic.version", "1.0.0"],
+  ["laic.direction", "input"],
+]));
+
+const columns: Record<string, arrow.Vector> = {
+  text: arrow.vectorFromArray(["hello"], schema.fields[0]!.type),
+  model: arrow.vectorFromArray([7], schema.fields[1]!.type),
+  max_tokens: arrow.vectorFromArray([512], schema.fields[2]!.type),
+};
+
+const table = new arrow.Table(schema, columns as any);
+const ipc = arrow.tableToIPC(table);
+
+let rejected = false;
+try {
+  EmbeddingInput.fromIpc(ipc);
+} catch {
+  rejected = true;
+}
+
+if (!rejected) {
+  throw new Error("expected scalar field type rejection");
 }
 
 console.log("PASS");
@@ -303,6 +341,16 @@ fn nul_followed_by_digit_defaults_compile() {
 }
 
 #[test]
+fn i64_defaults_compile_as_bigint_literals() {
+    ensure_toolchain_ready();
+    let case_dir = write_compile_case(
+        "i64_defaults_compile_as_bigint_literals",
+        &compile_and_generate(&i64_default_source()),
+    );
+    verify_compile(&case_dir, "i64_defaults_compile_as_bigint_literals");
+}
+
+#[test]
 fn echo_roundtrip() {
     ensure_toolchain_ready();
     let case_dir = write_roundtrip_case(
@@ -359,6 +407,17 @@ fn trailing_empty_record_batch_rejected() {
         TRAILING_EMPTY_RECORD_BATCH_REJECTED_DRIVER,
     );
     verify_roundtrip(&case_dir, "trailing_empty_record_batch_rejected");
+}
+
+#[test]
+fn embedding_default_field_type_mismatch_rejected() {
+    ensure_toolchain_ready();
+    let case_dir = write_roundtrip_case(
+        "embedding_default_field_type_mismatch_rejected",
+        &compile_fixture("embedding.laic"),
+        EMBEDDING_DEFAULT_FIELD_TYPE_MISMATCH_REJECTED_DRIVER,
+    );
+    verify_roundtrip(&case_dir, "embedding_default_field_type_mismatch_rejected");
 }
 
 #[cfg(test)]

@@ -5,7 +5,7 @@
 
 use crate::ast::{Dimension, FieldDef, LaicType, StructDef, TensorElementType};
 use crate::codegen::typescript_string_literal;
-use crate::codegen::typescript_types::{format_ts_dims, literal_to_ts};
+use crate::codegen::typescript_types::{format_ts_dims, literal_to_ts, ts_arrow_datatype, ts_type};
 
 /// Emit `fromIpc()` for a generated TypeScript contract class.
 pub fn generate_from_ipc(
@@ -124,24 +124,55 @@ fn emit_field_extraction(out: &mut String, field: &FieldDef) {
                 crate::codegen::typescript_types::ts_type(value)
             ));
         }
-        _ => match &field.default {
-            Some(default) => {
-                out.push_str(&format!(
-                    "    const {name}_column = batch.getChild(\"{name}\");\n"
-                ));
-                out.push_str(&format!(
-                    "    const {name} = {name}_column === null ? {} : ({name}_column.get(0) as {});\n",
-                    literal_to_ts(default),
-                    crate::codegen::typescript_types::ts_type(&field.ty)
-                ));
-            }
-            None => {
-                out.push_str(&format!(
-                    "    const {name} = batch.getChild(\"{name}\")!.get(0) as {};\n",
-                    crate::codegen::typescript_types::ts_type(&field.ty)
-                ));
-            }
-        },
+        _ => emit_scalar_extraction(out, field),
+    }
+}
+
+fn emit_scalar_extraction(out: &mut String, field: &FieldDef) {
+    let name = &field.name;
+    let ty = ts_type(&field.ty);
+    let expected_type = ts_arrow_datatype(&field.ty);
+
+    match &field.default {
+        Some(default) => {
+            out.push_str(&format!(
+                "    const {name}_column = batch.getChild(\"{name}\");\n"
+            ));
+            out.push_str(&format!("    let {name}: {ty};\n"));
+            out.push_str(&format!("    if ({name}_column === null) {{\n"));
+            out.push_str(&format!(
+                "      {name} = {};\n",
+                literal_to_ts(default, &field.ty)
+            ));
+            out.push_str("    } else {\n");
+            out.push_str(&format!(
+                "      const {name}_field = table.schema.fields.find((candidate) => candidate.name === \"{name}\")!;\n"
+            ));
+            out.push_str(&format!(
+                "      laicAssertFieldType({name}_field, \"{name}\", {expected_type});\n"
+            ));
+            out.push_str(&format!("      {name} = {name}_column.get(0) as {ty};\n"));
+            out.push_str("    }\n");
+        }
+        None => {
+            out.push_str(&format!(
+                "    const {name}_column = batch.getChild(\"{name}\");\n"
+            ));
+            out.push_str(&format!("    if ({name}_column === null) {{\n"));
+            out.push_str(&format!(
+                "      throw new Error(\"missing '{name}' column\");\n"
+            ));
+            out.push_str("    }\n");
+            out.push_str(&format!(
+                "    const {name}_field = table.schema.fields.find((candidate) => candidate.name === \"{name}\")!;\n"
+            ));
+            out.push_str(&format!(
+                "    laicAssertFieldType({name}_field, \"{name}\", {expected_type});\n"
+            ));
+            out.push_str(&format!(
+                "    const {name} = {name}_column.get(0) as {ty};\n"
+            ));
+        }
     }
 }
 

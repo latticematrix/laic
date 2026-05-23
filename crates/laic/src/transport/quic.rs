@@ -77,6 +77,7 @@ impl QuicServer {
             send,
             recv,
             conn,
+            closed: false,
             _endpoint: None,
         })
     }
@@ -113,6 +114,10 @@ pub struct QuicConnection {
     send: quinn::SendStream,
     recv: quinn::RecvStream,
     conn: quinn::Connection,
+    // WHY: Quinn surfaces post-close operations as backend I/O failures. LAIC's
+    // transport lifecycle contract needs a local state bit so send/receive after
+    // close() return the stable non-retryable ShuttingDown error instead.
+    closed: bool,
     // WHY: for client-created connections, keeps the endpoint alive so
     // the QUIC connection is not prematurely terminated. Server-accepted
     // connections set this to None (the QuicServer owns the endpoint).
@@ -169,6 +174,7 @@ impl QuicConnection {
             send,
             recv,
             conn,
+            closed: false,
             _endpoint: Some(endpoint),
         })
     }
@@ -177,9 +183,15 @@ impl QuicConnection {
     ///
     /// # Errors
     ///
+    /// Returns [`TransportError::ShuttingDown`] if this connection has
+    /// already been closed.
+    ///
     /// Returns [`TransportError::SendFailed`] on I/O failure, or
     /// [`LaicError::Protocol`] if the message header is invalid.
     pub async fn send(&mut self, msg: &Message) -> Result<(), LaicError> {
+        if self.closed {
+            return Err(TransportError::ShuttingDown.into());
+        }
         write_frame(&mut self.send, msg).await
     }
 
@@ -187,10 +199,16 @@ impl QuicConnection {
     ///
     /// # Errors
     ///
+    /// Returns [`TransportError::ShuttingDown`] if this connection has
+    /// already been closed.
+    ///
     /// Returns [`TransportError::ReceiveFailed`] on I/O failure,
     /// [`TransportError::FramingError`] if the payload exceeds the
     /// maximum, or [`LaicError::Protocol`] for invalid header fields.
     pub async fn receive(&mut self) -> Result<Message, LaicError> {
+        if self.closed {
+            return Err(TransportError::ShuttingDown.into());
+        }
         read_frame(&mut self.recv).await
     }
 
@@ -203,6 +221,9 @@ impl QuicConnection {
     /// the close; stronger graceful-drain semantics (ACK-wait +
     /// timeout) are deferred to Phase 4.
     ///
+    /// Repeated calls are idempotent: once the local closed state is set,
+    /// later close attempts return immediately.
+    ///
     /// # Errors
     ///
     /// Returns [`TransportError::ConnectionFailed`] if the send
@@ -211,12 +232,18 @@ impl QuicConnection {
     // quinn's finish() and close() are synchronous in 0.11.
     #[allow(clippy::unused_async)]
     pub async fn close(&mut self) -> Result<(), LaicError> {
-        self.send
+        if self.closed {
+            return Ok(());
+        }
+        self.closed = true;
+        let finish_result = self
+            .send
             .finish()
             .map_err(|e| TransportError::ConnectionFailed {
                 detail: format!("failed to finish send stream: {e}"),
-            })?;
+            });
         self.conn.close(0u32.into(), b"done");
+        finish_result?;
         Ok(())
     }
 

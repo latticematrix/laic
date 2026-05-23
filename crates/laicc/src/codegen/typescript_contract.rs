@@ -52,6 +52,17 @@ fn append_file_helpers(out: &mut String) {
     out.push_str("    throw new Error(`metadata '${key}' mismatch: expected '${expected}', got '${actual}'`);\n");
     out.push_str("  }\n");
     out.push_str("}\n\n");
+    out.push_str(
+        "function laicAssertFieldType(field: any, fieldName: string, expectedType: any): void {\n",
+    );
+    out.push_str("  const actual = field.type.toString();\n");
+    out.push_str("  const expected = expectedType.toString();\n");
+    out.push_str("  if (actual !== expected) {\n");
+    out.push_str(
+        "    throw new Error(`field '${fieldName}': expected type ${expected}, got ${actual}`);\n",
+    );
+    out.push_str("  }\n");
+    out.push_str("}\n\n");
     // Tensor shape metadata uses the same compact string representation as the other
     // language targets. Dynamic dimensions stay encoded as `0`, so the parser must
     // preserve that sentinel instead of normalizing it away.
@@ -121,7 +132,7 @@ fn generate_class(
                 "    public readonly {}: {} = {},\n",
                 field.name,
                 ts_type(&field.ty),
-                literal_to_ts(default)
+                literal_to_ts(default, &field.ty)
             )),
             None => out.push_str(&format!(
                 "    public readonly {}: {},\n",

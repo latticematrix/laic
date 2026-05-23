@@ -6,3 +6,9 @@ pub(crate) fn nul_digit_defaults_source() -> String {
         nul = '\0'
     )
 }
+
+#[allow(dead_code)]
+pub(crate) fn i64_default_source() -> String {
+    "version \"1.0.0\";\n\nskill bigint_defaults {\n    id = \"bigint-defaults\";\n\n    input BigintDefaultsInput {\n        token_count: i64 = 42;\n    }\n\n    output BigintDefaultsOutput {\n        status: string;\n    }\n}\n"
+        .to_string()
+}

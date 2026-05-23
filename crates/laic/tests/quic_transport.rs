@@ -8,6 +8,8 @@
 //! Firewall may block new binaries from opening UDP sockets. Keeping
 //! gateway tests here reuses the already-allowed test binary.
 
+use std::time::Duration;
+
 #[path = "support/quic_transport_handshake.rs"]
 mod quic_transport_handshake;
 #[path = "support/quic_transport.rs"]
@@ -29,6 +31,27 @@ use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+async fn connected_pair() -> (QuicConnection, QuicConnection) {
+    let pki = TestPki::generate();
+    let server = bind_server(&pki.server_tls);
+    let addr = server.local_addr().expect("local addr");
+
+    let server_handle = tokio::spawn(async move { server.accept().await.expect("server accept") });
+
+    let mut client = QuicConnection::connect(addr, "localhost", &pki.client_tls)
+        .await
+        .expect("client connect");
+
+    let seed = sample_message(vec![0xCC]);
+    client.send(&seed).await.expect("seed send");
+
+    let mut server_conn = server_handle.await.expect("join");
+    let received = server_conn.receive().await.expect("seed receive");
+    assert_eq!(received.payload(), seed.payload());
+
+    (client, server_conn)
+}
 
 #[tokio::test]
 async fn mtls_handshake_and_roundtrip() {
@@ -205,6 +228,37 @@ async fn connection_close() {
 
     // Client closes gracefully.
     client.close().await.expect("close");
+}
+
+#[tokio::test]
+async fn send_after_close_returns_shutting_down() {
+    let (mut client, _server_conn) = connected_pair().await;
+
+    client.close().await.expect("close");
+
+    let msg = sample_message(vec![0x01]);
+    let err = client
+        .send(&msg)
+        .await
+        .expect_err("send after close should be rejected");
+
+    // ShuttingDown = 0x0108
+    assert_eq!(err.code().as_u16(), 0x0108);
+}
+
+#[tokio::test]
+async fn receive_after_close_returns_shutting_down() {
+    let (mut client, _server_conn) = connected_pair().await;
+
+    client.close().await.expect("close");
+
+    let err = tokio::time::timeout(Duration::from_secs(2), client.receive())
+        .await
+        .expect("receive after close should not hang")
+        .expect_err("receive after close should be rejected");
+
+    // ShuttingDown = 0x0108
+    assert_eq!(err.code().as_u16(), 0x0108);
 }
 
 // ---------------------------------------------------------------------------
