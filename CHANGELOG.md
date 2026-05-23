@@ -20,7 +20,16 @@ This changelog does not exist to mirror every internal refactor, repo-local fixt
 
 ## Unreleased
 
-No unreleased stable-surface changes are recorded yet.
+### Changed
+
+- Hardened generated Arrow IPC deserialization so schema type mismatches and tensor metadata mismatches fail closed across Rust, Python, and TypeScript instead of being accepted silently.
+- Generated TypeScript `i64` defaults as `bigint` literals.
+- Stabilized QUIC transport lifecycle behavior so send/receive after `close()` reports `TransportError::ShuttingDown`.
+- Rejected fixed tensor dimension `0` during `.laic` validation so `0` remains the TypeScript dynamic-dimension metadata sentinel and tensor shape semantics stay portable across generated languages.
+
+### Breaking Changes
+
+- `.laic` schemas that use fixed tensor dimension `0` are now rejected. This closes an ambiguous cross-language contract bug: TypeScript generated code uses `0` as the dynamic-dimension metadata sentinel, while Rust and Python treated fixed `0` as a literal shape constraint.
 
 ## 0.2.1 - 2026-05-19
 
