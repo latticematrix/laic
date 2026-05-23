@@ -102,103 +102,144 @@ fn validate_field_type(
     ty: &LaicType,
 ) -> Result<(), CompileError> {
     match ty {
-        LaicType::Tensor { dims, .. } if dims.is_empty() => {
-            return Err(CompileError::Validation(format!(
-                "skill '{skill_name}': tensor field '{field_name}' must have at least one dimension"
-            )));
-        }
-        LaicType::List(inner) => {
-            if matches!(inner.as_ref(), LaicType::List(_)) {
-                return Err(CompileError::Validation(format!(
-                    "skill '{skill_name}': field '{field_name}': nested list<list<T>> is not supported"
-                )));
-            }
-            if let LaicType::Tensor { dims, .. } = inner.as_ref() {
-                if dims.iter().any(|d| matches!(d, Dimension::Dynamic(_))) {
-                    return Err(CompileError::Validation(format!(
-                        "skill '{skill_name}': field '{field_name}': list<tensor<...>> with dynamic dimensions is not supported"
-                    )));
-                }
-            }
-            if matches!(inner.as_ref(), LaicType::Map(_, _)) {
-                return Err(CompileError::Validation(format!(
-                    "skill '{skill_name}': field '{field_name}': list<map<...>> is not supported"
-                )));
-            }
-            // WHY: codegen only handles list<optional<leaf>>; deeper nesting
-            // (e.g. list<optional<list<T>>>) would produce GenericBuilder
-            if let LaicType::Optional(opt_inner) = inner.as_ref() {
-                if !is_leaf_type(opt_inner) {
-                    return Err(CompileError::Validation(format!(
-                        "skill '{skill_name}': field '{field_name}': list<optional<T>> requires T to be a scalar, string, bytes, or tensor type"
-                    )));
-                }
-            }
-            validate_field_type(skill_name, field_name, inner)?;
-        }
+        LaicType::Tensor { dims, .. } => validate_tensor_dimensions(skill_name, field_name, dims)?,
+        LaicType::List(inner) => validate_list_type_constraints(skill_name, field_name, inner)?,
         LaicType::Optional(inner) => {
-            if matches!(inner.as_ref(), LaicType::Optional(_)) {
-                return Err(CompileError::Validation(format!(
-                    "skill '{skill_name}': field '{field_name}': nested optional<optional<T>> is not supported"
-                )));
-            }
-            if let LaicType::Tensor { dims, .. } = inner.as_ref() {
-                if dims.iter().any(|d| matches!(d, Dimension::Dynamic(_))) {
-                    return Err(CompileError::Validation(format!(
-                        "skill '{skill_name}': field '{field_name}': optional<tensor<...>> with dynamic dimensions is not supported"
-                    )));
-                }
-            }
-            if matches!(inner.as_ref(), LaicType::Map(_, _)) {
-                return Err(CompileError::Validation(format!(
-                    "skill '{skill_name}': field '{field_name}': optional<map<...>> is not supported"
-                )));
-            }
-            // WHY: codegen only handles optional<list<leaf>>; deeper nesting
-            // (e.g. optional<list<optional<T>>>) would produce GenericBuilder
-            if let LaicType::List(list_inner) = inner.as_ref() {
-                if !is_leaf_type(list_inner) {
-                    return Err(CompileError::Validation(format!(
-                        "skill '{skill_name}': field '{field_name}': optional<list<T>> requires T to be a scalar, string, bytes, or tensor type"
-                    )));
-                }
-            }
-            validate_field_type(skill_name, field_name, inner)?;
+            validate_optional_type_constraints(skill_name, field_name, inner)?;
         }
         LaicType::Map(key, value) => {
-            match key.as_ref() {
-                LaicType::String
-                | LaicType::Bool
-                | LaicType::I8
-                | LaicType::I16
-                | LaicType::I32
-                | LaicType::I64
-                | LaicType::U8 => {}
-                _ => {
-                    return Err(CompileError::Validation(format!(
-                        "skill '{skill_name}': field '{field_name}': map key must be string, bool, or integer type"
-                    )));
-                }
-            }
-            match value.as_ref() {
-                LaicType::String
-                | LaicType::Bytes
-                | LaicType::Bool
-                | LaicType::I8
-                | LaicType::I16
-                | LaicType::I32
-                | LaicType::I64
-                | LaicType::U8
-                | LaicType::F32
-                | LaicType::F64 => {}
-                _ => {
-                    return Err(CompileError::Validation(format!(
-                        "skill '{skill_name}': field '{field_name}': map value must be a scalar type"
-                    )));
-                }
-            }
+            validate_map_type_constraints(skill_name, field_name, key, value)?;
         }
         _ => {}
+    }
+    Ok(())
+}
+
+fn validate_tensor_dimensions(
+    skill_name: &str,
+    field_name: &str,
+    dims: &[Dimension],
+) -> Result<(), CompileError> {
+    if dims.is_empty() {
+        return Err(CompileError::Validation(format!(
+            "skill '{skill_name}': tensor field '{field_name}' must have at least one dimension"
+        )));
+    }
+    if dims.iter().any(|d| matches!(d, Dimension::Fixed(0))) {
+        // WHY: TypeScript uses `0` as the dynamic-dimension metadata sentinel.
+        // Allowing a real fixed zero here would make the same schema mean two
+        // different things across languages, so reject it at validation time.
+        return Err(CompileError::Validation(format!(
+            "skill '{skill_name}': tensor field '{field_name}' cannot use fixed dimension 0"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_list_type_constraints(
+    skill_name: &str,
+    field_name: &str,
+    inner: &LaicType,
+) -> Result<(), CompileError> {
+    if matches!(inner, LaicType::List(_)) {
+        return Err(CompileError::Validation(format!(
+            "skill '{skill_name}': field '{field_name}': nested list<list<T>> is not supported"
+        )));
+    }
+    if let LaicType::Tensor { dims, .. } = inner {
+        if dims.iter().any(|d| matches!(d, Dimension::Dynamic(_))) {
+            return Err(CompileError::Validation(format!(
+                "skill '{skill_name}': field '{field_name}': list<tensor<...>> with dynamic dimensions is not supported"
+            )));
+        }
+    }
+    if matches!(inner, LaicType::Map(_, _)) {
+        return Err(CompileError::Validation(format!(
+            "skill '{skill_name}': field '{field_name}': list<map<...>> is not supported"
+        )));
+    }
+    // WHY: codegen only handles list<optional<leaf>>; deeper nesting
+    // (e.g. list<optional<list<T>>>) would produce GenericBuilder.
+    if let LaicType::Optional(opt_inner) = inner {
+        if !is_leaf_type(opt_inner) {
+            return Err(CompileError::Validation(format!(
+                "skill '{skill_name}': field '{field_name}': list<optional<T>> requires T to be a scalar, string, bytes, or tensor type"
+            )));
+        }
+    }
+    validate_field_type(skill_name, field_name, inner)
+}
+
+fn validate_optional_type_constraints(
+    skill_name: &str,
+    field_name: &str,
+    inner: &LaicType,
+) -> Result<(), CompileError> {
+    if matches!(inner, LaicType::Optional(_)) {
+        return Err(CompileError::Validation(format!(
+            "skill '{skill_name}': field '{field_name}': nested optional<optional<T>> is not supported"
+        )));
+    }
+    if let LaicType::Tensor { dims, .. } = inner {
+        if dims.iter().any(|d| matches!(d, Dimension::Dynamic(_))) {
+            return Err(CompileError::Validation(format!(
+                "skill '{skill_name}': field '{field_name}': optional<tensor<...>> with dynamic dimensions is not supported"
+            )));
+        }
+    }
+    if matches!(inner, LaicType::Map(_, _)) {
+        return Err(CompileError::Validation(format!(
+            "skill '{skill_name}': field '{field_name}': optional<map<...>> is not supported"
+        )));
+    }
+    // WHY: codegen only handles optional<list<leaf>>; deeper nesting
+    // (e.g. optional<list<optional<T>>>) would produce GenericBuilder.
+    if let LaicType::List(list_inner) = inner {
+        if !is_leaf_type(list_inner) {
+            return Err(CompileError::Validation(format!(
+                "skill '{skill_name}': field '{field_name}': optional<list<T>> requires T to be a scalar, string, bytes, or tensor type"
+            )));
+        }
+    }
+    validate_field_type(skill_name, field_name, inner)
+}
+
+fn validate_map_type_constraints(
+    skill_name: &str,
+    field_name: &str,
+    key: &LaicType,
+    value: &LaicType,
+) -> Result<(), CompileError> {
+    match key {
+        LaicType::String
+        | LaicType::Bool
+        | LaicType::I8
+        | LaicType::I16
+        | LaicType::I32
+        | LaicType::I64
+        | LaicType::U8 => {}
+        _ => {
+            return Err(CompileError::Validation(format!(
+                "skill '{skill_name}': field '{field_name}': map key must be string, bool, or integer type"
+            )));
+        }
+    }
+    match value {
+        LaicType::String
+        | LaicType::Bytes
+        | LaicType::Bool
+        | LaicType::I8
+        | LaicType::I16
+        | LaicType::I32
+        | LaicType::I64
+        | LaicType::U8
+        | LaicType::F32
+        | LaicType::F64 => {}
+        _ => {
+            return Err(CompileError::Validation(format!(
+                "skill '{skill_name}': field '{field_name}': map value must be a scalar type"
+            )));
+        }
     }
     Ok(())
 }

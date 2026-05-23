@@ -96,6 +96,7 @@ pub fn literal_to_ts(lit: &Literal, ty: &LaicType) -> String {
 pub fn format_ts_dims(dims: &[Dimension]) -> String {
     // Dynamic dimensions continue to use `0` as a cross-language metadata sentinel so
     // Rust/Python/TypeScript can compare shape strings without a target-specific DSL.
+    // Validation rejects concrete fixed `0`, so the sentinel stays unambiguous.
     let parts: Vec<String> = dims
         .iter()
         .map(|dim| match dim {

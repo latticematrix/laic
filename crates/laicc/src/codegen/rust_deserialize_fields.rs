@@ -25,22 +25,7 @@ pub(crate) fn emit_tensor_extraction(
     dims: &[Dimension],
 ) {
     out.push_str(&format!("        let {name} = {{\n"));
-    // Read metadata for validation
-    out.push_str("            let schema = batch.schema();\n");
-    out.push_str(&format!(
-        "            let field = schema.field_with_name(\"{name}\")\n"
-    ));
-    out.push_str(&format!(
-        "                .map_err(|_| \"missing '{}' field\".to_string())?;\n",
-        name
-    ));
-    out.push_str("            let meta = field.metadata();\n");
-
-    // Dtype validation
-    emit_tensor_dtype_validation(out, name, dtype);
-
-    // Shape validation
-    emit_tensor_shape_validation(out, name, dims);
+    emit_tensor_metadata_validation(out, name, dtype, dims);
 
     // Extract data
     out.push_str(&format!(
@@ -53,6 +38,29 @@ pub(crate) fn emit_tensor_extraction(
     ));
     out.push_str("            col.value(0).to_vec()\n");
     out.push_str("        };\n");
+}
+
+fn emit_tensor_metadata_validation(
+    out: &mut String,
+    name: &str,
+    dtype: &TensorElementType,
+    dims: &[Dimension],
+) {
+    // WHY: tensor metadata is part of the schema-field contract, even when the
+    // tensor bytes live inside list<...> or optional<...>. Validating it here keeps
+    // Rust aligned with Python/TypeScript and prevents silent cross-language drift.
+    out.push_str("            let schema = batch.schema();\n");
+    out.push_str(&format!(
+        "            let field = schema.field_with_name(\"{name}\")\n"
+    ));
+    out.push_str(&format!(
+        "                .map_err(|_| \"missing '{}' field\".to_string())?;\n",
+        name
+    ));
+    out.push_str("            let meta = field.metadata();\n");
+
+    emit_tensor_dtype_validation(out, name, dtype);
+    emit_tensor_shape_validation(out, name, dims);
 }
 
 fn emit_tensor_dtype_validation(out: &mut String, name: &str, dtype: &TensorElementType) {
@@ -177,6 +185,9 @@ pub(crate) fn emit_list_extraction(out: &mut String, name: &str, inner: &LaicTyp
             ));
         }
         LaicType::Tensor { .. } => {
+            if let LaicType::Tensor { dtype, dims } = inner {
+                emit_tensor_metadata_validation(out, name, dtype, dims);
+            }
             out.push_str(
                 "            let typed = inner_arr.as_any().downcast_ref::<BinaryArray>()\n",
             );
@@ -223,6 +234,9 @@ pub(crate) fn emit_optional_extraction(out: &mut String, name: &str, inner: &Lai
         "                .ok_or(\"missing '{}' column\")?;\n",
         name
     ));
+    if let LaicType::Tensor { dtype, dims } = inner {
+        emit_tensor_metadata_validation(out, name, dtype, dims);
+    }
     out.push_str("            if col.is_null(0) {\n");
     out.push_str("                None\n");
     out.push_str("            } else {\n");

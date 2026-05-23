@@ -261,6 +261,16 @@ fn reject_list_tensor_dynamic() {
 }
 
 #[test]
+fn reject_fixed_tensor_dimension_zero() {
+    let src = r#"
+        version "1.0.0";
+        skill t { id = "t"; input I { x: tensor<f32>[0]; } output O { y: i32; } }
+    "#;
+    let err = parse_and_validate(src).unwrap_err().to_string();
+    assert!(err.contains("dimension 0"), "{err}");
+}
+
+#[test]
 fn accept_list_tensor_fixed() {
     let src = r#"
         version "1.0.0";

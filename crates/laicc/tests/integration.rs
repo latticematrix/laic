@@ -224,6 +224,30 @@ fn fixture_tensor_container() {
     }
 }
 
+#[test]
+fn codegen_tensor_container_includes_nested_tensor_metadata_validation() {
+    let code = codegen_fixture("tensor_container");
+    let features_metadata = code
+        .find("field_with_name(\"features\")")
+        .expect("missing optional<tensor> metadata validation for features");
+    let features_null_check = code
+        .find("if col.is_null(0)")
+        .expect("missing optional<tensor> null check for features");
+
+    assert!(
+        code.contains("field_with_name(\"embeddings\")"),
+        "missing list<tensor> metadata validation for embeddings"
+    );
+    assert!(
+        code.contains("field_with_name(\"scores\")"),
+        "missing list<tensor> metadata validation for scores"
+    );
+    assert!(
+        features_metadata < features_null_check,
+        "optional<tensor> metadata must be validated before checking row nullability"
+    );
+}
+
 // -----------------------------------------------------------------------
 // Codegen tests — verify generated Rust code structure
 // -----------------------------------------------------------------------
