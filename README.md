@@ -3,6 +3,7 @@
 LAIC (Latrix AI Interconnect) is an independent mechanism-layer protocol project for high-throughput AI system communication.
 It focuses on transport, contract compilation, flow control, transport security, and emergency delivery.
 It does not define runtime policy, discovery, routing, provider hosting, or client convenience layers.
+It does not replace agent coordination protocols or compete with hardware or network interconnects; it focuses on contract-first structured AI data movement across languages and transports.
 
 ## Current Public Release
 

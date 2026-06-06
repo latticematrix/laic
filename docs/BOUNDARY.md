@@ -8,6 +8,17 @@ LAIC does not define runtime policy, discovery, routing, provider hosting,
 business logic, resource placement, model selection, or client convenience
 SDK behavior.
 
+## Ecosystem Position
+
+LAIC is intended to sit below or beside agent coordination protocols, runtime
+systems, and hardware or network interconnect layers. It does not replace those
+layers or compete with them.
+
+Its boundary is contract-first movement of structured AI data across languages
+and transports. Higher layers remain responsible for agent coordination,
+capability discovery, routing, scheduling, resource placement, workflow
+semantics, and business policy.
+
 ## Core Boundary
 
 LAIC is responsible for:
