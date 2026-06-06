@@ -18,7 +18,11 @@ This changelog does not exist to mirror every internal refactor, repo-local fixt
 - Internal-only or experimental-only changes should not be promoted here unless they change release-facing behavior.
 - Release notes must stay aligned with `docs/STABILITY.md`.
 
-## Unreleased
+## 0.2.2 - 2026-06-06
+
+### Release Theme
+
+- Patch release for cross-language contract hardening and QUIC close-lifecycle correctness.
 
 ### Changed
 

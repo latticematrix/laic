@@ -6,8 +6,8 @@ It does not define runtime policy, discovery, routing, provider hosting, or clie
 
 ## Current Public Release
 
-The current public release is `0.2.1`.
-It is a patch release for `laicc` CLI diagnostics and onboarding clarity; it is not a protocol expansion or performance re-baseline.
+The current public release is `0.2.2`.
+It is a patch release for cross-language contract hardening and QUIC close-lifecycle correctness; it is not a protocol expansion or performance re-baseline.
 
 ## Mechanism Layer At A Glance
 
