@@ -998,7 +998,7 @@ dependencies = [
 
 [[package]]
 name = "laicc"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "clap",
  "pest",
@@ -1009,7 +1009,7 @@ dependencies = [
 
 [[package]]
 name = "laicc-verify"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "arrow-array",
  "arrow-ipc",
@@ -1019,7 +1019,7 @@ dependencies = [
 
 [[package]]
 name = "latrix-laic"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "arrow-array",
  "arrow-ipc",
