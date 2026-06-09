@@ -12,6 +12,22 @@ fn reset_tmp_dir(path: &str) {
     fs::create_dir_all(path).unwrap_or_else(|err| panic!("failed to create {path}: {err}"));
 }
 
+fn inspect_schema_stdout(fixture: &str) -> String {
+    let path = format!("tests/fixtures/{fixture}");
+    let output = laicc_command()
+        .args(["inspect-schema", path.as_str()])
+        .output()
+        .unwrap_or_else(|err| panic!("failed to run laicc: {err}"));
+
+    assert!(
+        output.status.success(),
+        "inspect-schema {fixture} should succeed, stderr:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    String::from_utf8_lossy(&output.stdout).into_owned()
+}
+
 #[test]
 fn missing_input_file_reports_input_path() {
     let missing = "tests/fixtures/definitely_missing_input.laic";
@@ -77,17 +93,7 @@ fn generation_path_still_accepts_input_lang_and_output_flags() {
 
 #[test]
 fn inspect_schema_prints_human_readable_contract_metadata() {
-    let output = laicc_command()
-        .args(["inspect-schema", "tests/fixtures/embedding.laic"])
-        .output()
-        .unwrap_or_else(|err| panic!("failed to run laicc: {err}"));
-
-    assert!(
-        output.status.success(),
-        "inspect-schema should succeed, stderr:\n{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stdout = inspect_schema_stdout("embedding.laic");
 
     for expected in [
         "LAIC schema inspection",
@@ -105,6 +111,75 @@ fn inspect_schema_prints_human_readable_contract_metadata() {
             stdout.contains(expected),
             "inspect-schema stdout should contain {expected:?}, got:\n{stdout}"
         );
+    }
+}
+
+#[test]
+fn inspect_schema_covers_current_structural_fixtures() {
+    for (fixture, expected) in [
+        (
+            "list_types.laic",
+            &[
+                "BatchEmbedInput",
+                "texts",
+                "list<string>",
+                "DataType::List(item: DataType::Utf8)",
+                "weights",
+                "list<f32>",
+                "token_counts",
+                "list<i32>",
+            ][..],
+        ),
+        (
+            "optional_types.laic",
+            &[
+                "SearchInput",
+                "max_results",
+                "optional<i32>",
+                "Nullable: true",
+                "filter_tag",
+                "optional<string>",
+                "next_cursor",
+            ][..],
+        ),
+        (
+            "map_types.laic",
+            &[
+                "MapDemoInput",
+                "metadata",
+                "map<string, string>",
+                "DataType::Map(keys: DataType::Utf8, values: DataType::Utf8)",
+                "scores",
+                "map<string, f64>",
+                "flags",
+                "map<i32, bool>",
+            ][..],
+        ),
+        (
+            "tensor_container.laic",
+            &[
+                "TensorContainerInput",
+                "embeddings",
+                "list<tensor<f32>[768]>",
+                "primary",
+                "tensor<f32>[3,224,224]",
+                "features",
+                "optional<tensor<f64>[512]>",
+                "scores",
+                "list<tensor<f32>[10]>",
+                "laic.tensor.dtype",
+                "laic.tensor.shape",
+                "laic.tensor.version",
+            ][..],
+        ),
+    ] {
+        let stdout = inspect_schema_stdout(fixture);
+        for item in expected {
+            assert!(
+                stdout.contains(item),
+                "inspect-schema {fixture} stdout should contain {item:?}, got:\n{stdout}"
+            );
+        }
     }
 }
 
