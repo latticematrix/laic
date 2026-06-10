@@ -156,6 +156,9 @@ fn inspect_field(out: &mut String, field: &FieldDef) {
             "        laic.tensor.shape = {}",
             format_tensor_shape_metadata(dims)
         );
+        if dims.iter().any(|dim| matches!(dim, Dimension::Dynamic(_))) {
+            out.push_str("        Note: 0 marks dynamic dimensions in tensor shape metadata.\n");
+        }
         out.push_str("        laic.tensor.version = 1\n");
     }
 }

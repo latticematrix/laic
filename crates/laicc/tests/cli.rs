@@ -188,6 +188,22 @@ fn inspect_schema_covers_current_structural_fixtures() {
 }
 
 #[test]
+fn inspect_schema_explains_dynamic_tensor_dimension_metadata() {
+    let stdout = inspect_schema_stdout("image_classify.laic");
+
+    for expected in [
+        "tensor<f32>[_,512]",
+        "laic.tensor.shape = [0,512]",
+        "0 marks dynamic dimensions",
+    ] {
+        assert!(
+            stdout.contains(expected),
+            "inspect-schema stdout should explain dynamic tensor metadata {expected:?}, got:\n{stdout}"
+        );
+    }
+}
+
+#[test]
 fn inspect_schema_invalid_contract_uses_validation_error_path() {
     let tmp = ".tmp/laicc-cli-inspect-invalid";
     reset_tmp_dir(tmp);
