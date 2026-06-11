@@ -11,6 +11,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use laicc::LaicFile;
 use serde::{Deserialize, Serialize};
@@ -55,12 +56,15 @@ pub(crate) struct CrossLanguageObservation {
 pub(crate) struct PreparedFixture {
     file: LaicFile,
     spec: FixtureSpec,
+    case_scope: PathBuf,
     python_driver: PathBuf,
     python_case_dir: PathBuf,
     runtime_json: String,
     typescript_case_dir: PathBuf,
     typescript_driver: PathBuf,
 }
+
+static NEXT_FIXTURE_ID: AtomicU64 = AtomicU64::new(0);
 
 pub(crate) fn prepare_fixture(fixture: &str) -> PreparedFixture {
     let spec = fixture_spec(fixture);
@@ -72,13 +76,19 @@ pub(crate) fn prepare_fixture(fixture: &str) -> PreparedFixture {
         .unwrap_or_else(|e| panic!("generate_typescript {}: {e}", spec.stem));
     let runtime_json = serde_json::to_string(&spec.runtime)
         .unwrap_or_else(|e| panic!("serialize {}: {e}", spec.stem));
-    let (python_case_dir, python_driver) = write_python_case(&spec, &python_code);
-    let (typescript_case_dir, typescript_driver) = write_typescript_case(&spec, &typescript_code);
+    let case_id = unique_case_id(spec.stem);
+    let case_scope = std::env::temp_dir()
+        .join("laicc_contract_surface")
+        .join(&case_id);
+    let (python_case_dir, python_driver) = write_python_case(&case_scope, &spec, &python_code);
+    let (typescript_case_dir, typescript_driver) =
+        write_typescript_case(&case_id, &typescript_code);
     compile_typescript_case(&typescript_case_dir, spec.stem);
 
     PreparedFixture {
         file,
         spec,
+        case_scope,
         python_driver,
         python_case_dir,
         runtime_json,
@@ -153,7 +163,7 @@ impl PreparedFixture {
     }
 
     pub(crate) fn roundtrip_python_to_typescript(&self) -> CrossLanguageObservation {
-        let exchange_dir = fresh_exchange_dir(self.spec.stem, "python_to_typescript");
+        let exchange_dir = fresh_exchange_dir(&self.case_scope, "python_to_typescript");
         assert_process_succeeded(
             &run_python(
                 &self.python_case_dir,
@@ -182,7 +192,7 @@ impl PreparedFixture {
     }
 
     pub(crate) fn roundtrip_typescript_to_python(&self) -> CrossLanguageObservation {
-        let exchange_dir = fresh_exchange_dir(self.spec.stem, "typescript_to_python");
+        let exchange_dir = fresh_exchange_dir(&self.case_scope, "typescript_to_python");
         assert_process_succeeded(
             &run_node(
                 &self.typescript_case_dir,
@@ -217,6 +227,7 @@ impl Drop for PreparedFixture {
         // `tsc` can inherit the checked-in fixture config. Cleanup keeps test runs from leaving
         // untracked `.compat` outputs behind, which would otherwise pollute review/audit state.
         remove_dir_if_exists(&self.python_case_dir);
+        remove_dir_if_exists(&self.case_scope);
         cleanup_case_dir(&self.typescript_case_dir);
     }
 }
@@ -264,13 +275,8 @@ fn load_fixture_source(stem: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
-fn write_python_case(spec: &FixtureSpec, generated: &str) -> (PathBuf, PathBuf) {
-    let dir = fresh_python_case_dir(
-        std::env::temp_dir()
-            .join("laicc_contract_surface")
-            .join(spec.stem),
-        "python",
-    );
+fn write_python_case(case_scope: &Path, spec: &FixtureSpec, generated: &str) -> (PathBuf, PathBuf) {
+    let dir = fresh_python_case_dir(case_scope.to_path_buf(), "python");
     write_python_package(&dir, spec.stem, generated);
     let driver = python_driver_path(&dir);
     fs::write(&driver, python_driver(spec.stem))
@@ -278,8 +284,8 @@ fn write_python_case(spec: &FixtureSpec, generated: &str) -> (PathBuf, PathBuf) 
     (dir, driver)
 }
 
-fn write_typescript_case(spec: &FixtureSpec, generated: &str) -> (PathBuf, PathBuf) {
-    let dir = write_package_root_case(".compat", spec.stem, generated, Some(typescript_driver()));
+fn write_typescript_case(case_id: &str, generated: &str) -> (PathBuf, PathBuf) {
+    let dir = write_package_root_case(".compat", case_id, generated, Some(typescript_driver()));
     (dir.clone(), dir.join("dist").join("driver.js"))
 }
 
@@ -311,15 +317,18 @@ fn remove_dir_if_exists(path: &Path) {
     }
 }
 
-fn fresh_exchange_dir(stem: &str, name: &str) -> PathBuf {
-    let dir = fresh_dir(
-        std::env::temp_dir()
-            .join("laicc_contract_surface")
-            .join(stem)
-            .join(name),
-    );
+fn fresh_exchange_dir(case_scope: &Path, name: &str) -> PathBuf {
+    let dir = fresh_dir(case_scope.join(name));
     fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir exchange {}: {e}", dir.display()));
     dir
+}
+
+fn unique_case_id(stem: &str) -> String {
+    // WHY: Rust runs test functions in parallel by default. Several contract-surface tests exercise
+    // the same fixture stem (`echo`) and their Drop cleanup can otherwise delete another test's
+    // Python driver or IPC exchange directory mid-run.
+    let sequence = NEXT_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
+    format!("{stem}-{}-{sequence}", std::process::id())
 }
 
 fn run_python(
