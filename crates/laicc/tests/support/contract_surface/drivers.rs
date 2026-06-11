@@ -3,6 +3,9 @@ use super::python_fixture::python_driver_script;
 pub(crate) fn python_driver(stem: &str) -> String {
     python_driver_script(
         stem,
+        // WHY: the Python driver body intentionally uses `format!` so doubled braces render as
+        // Python dict/f-string braces. Replacing this with a raw string changes generated code.
+        #[allow(clippy::useless_format)]
         &format!(
             r#"import json
 import os

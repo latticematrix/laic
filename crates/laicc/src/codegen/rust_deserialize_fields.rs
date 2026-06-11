@@ -184,10 +184,8 @@ pub(crate) fn emit_list_extraction(out: &mut String, name: &str, inner: &LaicTyp
                 "            (0..typed.len()).map(|i| if typed.is_null(i) {{ None }} else {{ Some({val_expr}) }}).collect::<Vec<_>>()\n"
             ));
         }
-        LaicType::Tensor { .. } => {
-            if let LaicType::Tensor { dtype, dims } = inner {
-                emit_tensor_metadata_validation(out, name, dtype, dims);
-            }
+        LaicType::Tensor { dtype, dims } => {
+            emit_tensor_metadata_validation(out, name, dtype, dims);
             out.push_str(
                 "            let typed = inner_arr.as_any().downcast_ref::<BinaryArray>()\n",
             );

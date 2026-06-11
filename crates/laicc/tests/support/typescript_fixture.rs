@@ -66,13 +66,8 @@ pub(crate) fn cleanup_case_dir(path: &Path) {
     if path.exists() {
         std::fs::remove_dir_all(path).unwrap_or_else(|e| panic!("cleanup {}: {e}", path.display()));
     }
-    if let Some(parent) = path.parent().filter(|candidate| candidate.exists()) {
-        match std::fs::remove_dir(parent) {
-            Ok(()) => {}
-            Err(err) if err.kind() == std::io::ErrorKind::DirectoryNotEmpty => {}
-            Err(err) => panic!("cleanup {}: {err}", parent.display()),
-        }
-    }
+    // WHY: the parent `.compat` scope is shared by default-parallel Rust tests. A fixture may
+    // remove only its unique case directory; deleting the shared parent races with sibling tests.
 }
 
 fn fresh_case_dir(scope_dir: &str, case_name: &str) -> PathBuf {
