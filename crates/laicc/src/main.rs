@@ -159,6 +159,9 @@ fn inspect_field(out: &mut String, field: &FieldDef) {
         if dims.iter().any(|dim| matches!(dim, Dimension::Dynamic(_))) {
             out.push_str("        Note: 0 marks dynamic dimensions in tensor shape metadata.\n");
         }
+        if is_container_tensor(&field.ty) {
+            out.push_str("        Note: tensor metadata is stored on the outer field.\n");
+        }
         out.push_str("        laic.tensor.version = 1\n");
     }
 }
@@ -176,6 +179,10 @@ fn tensor_metadata(ty: &LaicType) -> Option<(&TensorElementType, &[Dimension])> 
         },
         _ => None,
     }
+}
+
+fn is_container_tensor(ty: &LaicType) -> bool {
+    matches!(ty, LaicType::List(inner) | LaicType::Optional(inner) if matches!(inner.as_ref(), LaicType::Tensor { .. }))
 }
 
 fn format_laic_type(ty: &LaicType) -> String {

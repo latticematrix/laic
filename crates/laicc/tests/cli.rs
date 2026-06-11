@@ -204,6 +204,46 @@ fn inspect_schema_explains_dynamic_tensor_dimension_metadata() {
 }
 
 #[test]
+fn inspect_schema_explains_container_tensor_metadata_owner() {
+    let stdout = inspect_schema_stdout("tensor_container.laic");
+
+    for expected in [
+        "list<tensor<f32>[768]>",
+        "optional<tensor<f64>[512]>",
+        "tensor metadata is stored on the outer field",
+    ] {
+        assert!(
+            stdout.contains(expected),
+            "inspect-schema stdout should explain container tensor metadata ownership {expected:?}, got:\n{stdout}"
+        );
+    }
+}
+
+#[test]
+fn inspect_schema_covers_multi_skill_schema_metadata() {
+    let stdout = inspect_schema_stdout("multi_skill.laic");
+
+    for expected in [
+        "Version: 2.0.0",
+        "Skill: tokenize",
+        "laic.skill_id = tokenize",
+        "Message: TokenizeInput",
+        "laic.direction = input",
+        "Message: TokenizeOutput",
+        "laic.direction = output",
+        "Skill: detokenize",
+        "laic.skill_id = detokenize",
+        "Message: DetokenizeInput",
+        "Message: DetokenizeOutput",
+    ] {
+        assert!(
+            stdout.contains(expected),
+            "inspect-schema stdout should cover multi-skill schema metadata {expected:?}, got:\n{stdout}"
+        );
+    }
+}
+
+#[test]
 fn inspect_schema_invalid_contract_uses_validation_error_path() {
     let tmp = ".tmp/laicc-cli-inspect-invalid";
     reset_tmp_dir(tmp);
