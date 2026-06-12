@@ -129,7 +129,7 @@ Expected output:
 
 - generated file: `.tmp/laicc-smoke/echo_laic.rs`
 
-To inspect the contract-to-Arrow schema mapping before generating bindings, run:
+To inspect the contract-to-Arrow schema mapping from repository source, run:
 
 ```powershell
 cargo run -p laicc -- inspect-schema crates/laicc/tests/fixtures/echo.laic
@@ -183,15 +183,6 @@ laicc ./echo.laic --lang rust -o ./generated
 Expected output:
 
 - generated file: `./generated/echo_laic.rs`
-
-Inspect the local contract schema:
-
-```powershell
-laicc inspect-schema ./echo.laic
-```
-
-The inspection output is human-readable diagnostic text only; do not parse it as
-a stable JSON, YAML, or other machine-readable contract.
 
 The same local contract can target Python or TypeScript by changing `--lang` to `python` or `typescript`.
 
