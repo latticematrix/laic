@@ -59,6 +59,25 @@ fn fixture_echo() {
 }
 
 #[test]
+fn fixture_scalar_types() {
+    let file = compile_fixture("scalar_types");
+    let skill = &file.skills[0];
+    assert_eq!(skill.name, "scalar_types");
+    assert_eq!(skill.id, "scalar-types");
+    assert_eq!(skill.input.fields.len(), 10);
+    assert_eq!(skill.input.fields[0].ty, laicc::LaicType::String);
+    assert_eq!(skill.input.fields[1].ty, laicc::LaicType::Bytes);
+    assert_eq!(skill.input.fields[2].ty, laicc::LaicType::Bool);
+    assert_eq!(skill.input.fields[3].ty, laicc::LaicType::I8);
+    assert_eq!(skill.input.fields[4].ty, laicc::LaicType::I16);
+    assert_eq!(skill.input.fields[5].ty, laicc::LaicType::I32);
+    assert_eq!(skill.input.fields[6].ty, laicc::LaicType::I64);
+    assert_eq!(skill.input.fields[7].ty, laicc::LaicType::U8);
+    assert_eq!(skill.input.fields[8].ty, laicc::LaicType::F32);
+    assert_eq!(skill.input.fields[9].ty, laicc::LaicType::F64);
+}
+
+#[test]
 fn fixture_embedding() {
     let file = compile_fixture("embedding");
     assert_eq!(file.skills[0].name, "embedding");
