@@ -18,7 +18,13 @@ check_pattern() {
   local desc="$1"
   local pattern="$2"
   local matches
-  matches=$(grep -rn "$pattern" crates/ --include='*.rs' || true)
+  # Keep scanning workspace Rust files, but skip generated/local dependency
+  # directories so reviewer hints are not polluted by ignored temp output.
+  matches=$(grep -rn "$pattern" crates/ \
+    --include='*.rs' \
+    --exclude-dir='.tmp' \
+    --exclude-dir='target' \
+    --exclude-dir='node_modules' || true)
   if [ -n "$matches" ]; then
     echo -e "${YELLOW}REVIEW${NC} $desc"
     echo "$matches" | head -10
@@ -56,5 +62,5 @@ if [ "$WARNINGS" -eq 0 ]; then
   echo -e "${GREEN}No boundary violations detected.${NC}"
 else
   echo -e "${YELLOW}${WARNINGS} pattern(s) flagged for review.${NC}"
-  echo "These may be false positives. Verify each against docs/LAIC 绝对边界.md"
+  echo "These may be false positives. Verify each against docs/BOUNDARY.md"
 fi
