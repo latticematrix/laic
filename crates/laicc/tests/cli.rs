@@ -188,6 +188,50 @@ fn inspect_schema_covers_current_structural_fixtures() {
 }
 
 #[test]
+fn inspect_schema_covers_scalar_arrow_mappings() {
+    let stdout = inspect_schema_stdout("scalar_types.laic");
+
+    for expected in [
+        "ScalarInput",
+        "text",
+        "string",
+        "DataType::Utf8",
+        "payload",
+        "bytes",
+        "DataType::Binary",
+        "enabled",
+        "bool",
+        "DataType::Boolean",
+        "small_signed",
+        "i8",
+        "DataType::Int8",
+        "medium_signed",
+        "i16",
+        "DataType::Int16",
+        "count",
+        "i32",
+        "DataType::Int32",
+        "large_signed",
+        "i64",
+        "DataType::Int64",
+        "small_unsigned",
+        "u8",
+        "DataType::UInt8",
+        "score",
+        "f32",
+        "DataType::Float32",
+        "confidence",
+        "f64",
+        "DataType::Float64",
+    ] {
+        assert!(
+            stdout.contains(expected),
+            "inspect-schema stdout should cover scalar Arrow mapping {expected:?}, got:\n{stdout}"
+        );
+    }
+}
+
+#[test]
 fn inspect_schema_explains_dynamic_tensor_dimension_metadata() {
     let stdout = inspect_schema_stdout("image_classify.laic");
 

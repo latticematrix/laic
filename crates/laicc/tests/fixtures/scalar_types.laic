@@ -1,0 +1,22 @@
+version "1.0.0";
+
+skill scalar_types {
+    id = "scalar-types";
+
+    input ScalarInput {
+        text: string;
+        payload: bytes;
+        enabled: bool;
+        small_signed: i8;
+        medium_signed: i16;
+        count: i32;
+        large_signed: i64;
+        small_unsigned: u8;
+        score: f32;
+        confidence: f64;
+    }
+
+    output ScalarOutput {
+        count: i32;
+    }
+}
